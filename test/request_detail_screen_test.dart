@@ -22,13 +22,22 @@ final _order = Order(
   updatedAt: _now.subtract(const Duration(minutes: 12)),
 );
 
+/// The Order panel sits below the fold on the small test screen.
+Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
+    .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).last);
+
 void main() {
   testWidgets('shows fee, tip, total pay and the Paw Points order number', (
     tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: RequestDetailScreen(order: _order, now: _now),
+        home: RequestDetailScreen(
+          order: _order,
+          service: MockCourierService(latency: Duration.zero),
+          courierId: 'courier-a',
+          now: _now,
+        ),
       ),
     );
 
@@ -37,9 +46,10 @@ void main() {
     expect(find.text(r'$3.00'), findsOneWidget);
     expect(find.text(r'$1.25'), findsOneWidget);
     expect(find.text(r'$4.25'), findsOneWidget);
-    expect(find.text('PP-4810'), findsOneWidget);
     expect(find.text('0.4 mi'), findsOneWidget);
     expect(find.text('12 min ago'), findsOneWidget);
+    await _scrollTo(tester, find.text('PP-4810'));
+    expect(find.text('PP-4810'), findsOneWidget);
   });
 
   testWidgets('tapping a request card opens its details and back returns', (
@@ -49,7 +59,9 @@ void main() {
     final first = (await service.fetchAvailableRequests()).first;
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: AvailableTab(service: service)),
+        home: Scaffold(
+          body: AvailableTab(service: service, courierId: 'courier-a'),
+        ),
       ),
     );
     await tester.pump();
@@ -57,6 +69,7 @@ void main() {
     await tester.tap(find.text(first.pickupLocation));
     await tester.pumpAndSettle();
     expect(find.text('Request details'), findsOneWidget);
+    await _scrollTo(tester, find.text(first.pawPointsOrderNumber));
     expect(find.text(first.pawPointsOrderNumber), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.arrow_back));

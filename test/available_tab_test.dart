@@ -17,7 +17,9 @@ class _EmptyService extends MockCourierService {
 Future<void> _pumpTab(WidgetTester tester, CourierService service) async {
   await tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(body: AvailableTab(service: service)),
+      home: Scaffold(
+        body: AvailableTab(service: service, courierId: 'courier-a'),
+      ),
     ),
   );
 }
