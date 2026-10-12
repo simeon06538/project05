@@ -8,11 +8,13 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
 import 'accept_dialog.dart';
 import 'order_widgets.dart';
+import 'request_gone_dialog.dart';
 
 /// K-04: full breakdown of one request before the courier accepts it.
 /// K-05: "Accept delivery" button with a confirm dialog. Pops with the
 /// accepted [Order] on success.
 /// K-06: the button is locked while the courier has an active delivery.
+/// K-13: if someone else took the request first, says so and goes back.
 class RequestDetailScreen extends StatefulWidget {
   const RequestDetailScreen({
     super.key,
@@ -55,10 +57,22 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     } on ActiveDeliveryException catch (e) {
       // Another screen or device accepted a delivery since we opened this.
       _showError(e, lock: true);
+    } on OrderAlreadyTakenException {
+      await _requestGone(taken: true);
+    } on OrderNotFoundException {
+      await _requestGone(taken: false);
     } catch (e) {
-      // K-13 adds friendlier handling for "already taken".
       _showError(e);
     }
+  }
+
+  /// K-13: the request can't be accepted any more, so explain why and go
+  /// back to the list, which reloads when this screen closes.
+  Future<void> _requestGone({required bool taken}) async {
+    if (!mounted) return;
+    setState(() => _accepting = false);
+    await showRequestGone(context, taken: taken);
+    if (mounted) Navigator.of(context).pop();
   }
 
   void _showError(Object error, {bool lock = false}) {
