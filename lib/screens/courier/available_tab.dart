@@ -19,6 +19,7 @@ class AvailableTab extends StatefulWidget {
     required this.service,
     required this.courierId,
     this.onViewActiveDelivery,
+    this.isVisible = true,
   });
 
   final CourierService service;
@@ -26,6 +27,10 @@ class AvailableTab extends StatefulWidget {
 
   /// Switches to the My Deliveries tab.
   final VoidCallback? onViewActiveDelivery;
+
+  /// Reloads each time the tab is shown again, so the list and banner
+  /// reflect anything that changed on the other tabs.
+  final bool isVisible;
 
   @override
   State<AvailableTab> createState() => _AvailableTabState();
@@ -40,6 +45,12 @@ class _AvailableTabState extends State<AvailableTab> {
   void initState() {
     super.initState();
     _data = _load();
+  }
+
+  @override
+  void didUpdateWidget(AvailableTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isVisible && !oldWidget.isVisible) _data = _load();
   }
 
   Future<_TabData> _load() async {
