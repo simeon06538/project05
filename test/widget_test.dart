@@ -1,12 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:campus_delivery/main.dart';
+import 'package:campus_delivery/services/mock_courier_service.dart';
 
 void main() {
   testWidgets('Courier home shows three tabs and switches between them', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const CampusDeliveryApp());
+    await tester.pumpWidget(
+      CampusDeliveryApp(
+        courierService: MockCourierService(latency: Duration.zero),
+      ),
+    );
     await tester.pump();
 
     expect(find.text('Available'), findsOneWidget);
