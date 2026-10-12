@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
 import 'request_card.dart';
+import 'request_detail_screen.dart';
 import 'tab_header.dart';
 
 /// K-03: list of open delivery requests from the [CourierService].
@@ -69,7 +70,14 @@ class _AvailableTabState extends State<AvailableTab> {
               ),
               const SizedBox(height: 12),
               for (final order in requests) ...[
-                RequestCard(order: order),
+                RequestCard(
+                  order: order,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => RequestDetailScreen(order: order),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
               ],
             ],
