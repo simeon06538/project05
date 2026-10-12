@@ -111,6 +111,21 @@ void demoRequestTests() {
     );
   });
 
+  test('failNextCalls fails only the given number of calls', () async {
+    final service = MockCourierService(latency: Duration.zero)
+      ..failNextCalls(2);
+
+    await expectLater(
+      service.fetchAvailableRequests(),
+      throwsA(isA<ServiceUnavailableException>()),
+    );
+    await expectLater(
+      service.fetchEarnings('courier-a'),
+      throwsA(isA<ServiceUnavailableException>()),
+    );
+    expect(await service.fetchAvailableRequests(), hasLength(5));
+  });
+
   test('addDemoRequest adds a new open request', () async {
     final service = MockCourierService(latency: Duration.zero);
     final added = service.addDemoRequest();

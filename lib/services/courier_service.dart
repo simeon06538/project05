@@ -37,6 +37,15 @@ class CourierEarnings {
   final List<Order> completedDeliveries;
 }
 
+/// The server couldn't be reached or failed; the request can be retried.
+class ServiceUnavailableException implements Exception {
+  const ServiceUnavailableException();
+
+  @override
+  String toString() =>
+      "Couldn't reach the server. Check your connection and try again.";
+}
+
 class OrderNotFoundException implements Exception {
   const OrderNotFoundException(this.orderId);
   final String orderId;

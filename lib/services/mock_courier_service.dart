@@ -26,6 +26,7 @@ class MockCourierService implements CourierService {
   final Duration? newRequestEvery;
 
   late DateTime _lastNewRequest;
+  int _failuresLeft = 0;
   int _nextDemo = 0;
 
   final Map<String, Order> _orders = {};
@@ -122,8 +123,17 @@ class MockCourierService implements CourierService {
     return null;
   }
 
-  Future<void> _delay() =>
-      latency == Duration.zero ? Future.value() : Future.delayed(latency);
+  /// Makes the next [count] service calls throw
+  /// [ServiceUnavailableException], to test and demo error states (K-14).
+  void failNextCalls([int count = 1]) => _failuresLeft = count;
+
+  Future<void> _delay() async {
+    if (latency != Duration.zero) await Future<void>.delayed(latency);
+    if (_failuresLeft > 0) {
+      _failuresLeft--;
+      throw const ServiceUnavailableException();
+    }
+  }
 
   void _seed(DateTime now) {
     // Fees follow the TASKS.txt rule: $2.00 + $0.50 per started 0.25 mi
