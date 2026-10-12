@@ -58,6 +58,8 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                           AvailableTab(
                             service: widget.service,
                             courierId: widget.courierId,
+                            onViewActiveDelivery: () =>
+                                setState(() => _selectedTab = 1),
                           ),
                           const MyDeliveriesTab(),
                           const EarningsTab(),
