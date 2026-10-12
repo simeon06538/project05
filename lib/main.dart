@@ -22,6 +22,8 @@ void main() {
     const Duration(minutes: 1),
     () => service.takeByOtherCourier('order-4'),
   );
+  // Demo: open the app with ?demo=offline to see the error state (K-14).
+  if (Uri.base.queryParameters['demo'] == 'offline') service.failNextCalls();
   runApp(CampusDeliveryApp(courierService: service));
 }
 
