@@ -72,14 +72,15 @@ void main() {
     expect((await service.fetchActiveDelivery(_courier))?.id, order.id);
   });
 
-  testWidgets('shows an error and stays put if accepting fails', (
+  testWidgets('if a delivery was accepted elsewhere, shows why and locks', (
     tester,
   ) async {
     final service = MockCourierService(latency: Duration.zero);
-    // Give the courier an active delivery so the next accept is refused.
+    await _openFirstRequest(tester, service);
+    // Meanwhile the same courier accepts a different order (e.g. on
+    // another device), so this accept will be refused.
     final requests = await service.fetchAvailableRequests();
     await service.acceptRequest(requests.last.id, _courier);
-    await _openFirstRequest(tester, service);
 
     await tester.tap(_acceptButton);
     await tester.pumpAndSettle();
@@ -87,6 +88,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Request details'), findsOneWidget);
-    expect(find.textContaining('Finish your current delivery'), findsOneWidget);
+    expect(
+      find.text('Finish your current delivery before accepting another.'),
+      findsOneWidget,
+    );
+    expect(find.text('Finish your current delivery first'), findsOneWidget);
   });
 }
