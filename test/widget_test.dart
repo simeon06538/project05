@@ -26,6 +26,7 @@ void main() {
 
     await tester.tap(find.text('Earnings'));
     await tester.pump();
+    await tester.pump(); // tab reloads its data when shown
     expect(find.text('Demo balance'), findsOneWidget);
   });
 }
