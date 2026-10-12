@@ -5,12 +5,15 @@ import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
+import '../../widgets/primary_button.dart';
+import 'delivered_dialog.dart';
 import 'order_widgets.dart';
 import 'status_stepper.dart';
 import 'tab_header.dart';
 
 /// K-07: the courier's current delivery - progress, where to go next,
-/// route, pay and the Paw Points order number. Status buttons come in K-08.
+/// route, pay and the Paw Points order number.
+/// K-08: one button for the next valid status (Picked up, then Delivered).
 class MyDeliveriesTab extends StatefulWidget {
   const MyDeliveriesTab({
     super.key,
@@ -31,69 +34,126 @@ class MyDeliveriesTab extends StatefulWidget {
 }
 
 class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
-  late Future<Order?> _active;
+  Order? _order;
+  bool _loading = true;
+  bool _loadFailed = false;
+  bool _updating = false;
 
   @override
   void initState() {
     super.initState();
-    _active = widget.service.fetchActiveDelivery(widget.courierId);
+    _load();
   }
 
   @override
   void didUpdateWidget(MyDeliveriesTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isVisible && !oldWidget.isVisible) {
-      _active = widget.service.fetchActiveDelivery(widget.courierId);
+    if (widget.isVisible && !oldWidget.isVisible) _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _loadFailed = false;
+    });
+    try {
+      final order = await widget.service.fetchActiveDelivery(widget.courierId);
+      if (mounted) setState(() => _order = order);
+    } catch (_) {
+      if (mounted) setState(() => _loadFailed = true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// K-08: moves the delivery to its next status. Delivering asks first,
+  /// since it pays out and can't be undone.
+  Future<void> _advance(Order order) async {
+    final next = order.status.next;
+    if (next == null) return;
+    if (next == OrderStatus.delivered &&
+        !await confirmDelivered(context, order)) {
+      return;
+    }
+    if (!mounted) return;
+
+    setState(() => _updating = true);
+    try {
+      final updated = await widget.service.updateStatus(order.id, next);
+      if (!mounted) return;
+      final delivered = updated.status == OrderStatus.delivered;
+      setState(() => _order = delivered ? null : updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            delivered
+                ? 'Delivered! ${formatCents(updated.totalPayCents)} added to '
+                      'your earnings'
+                : 'Picked up · now head to ${updated.dropoffLocation}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _updating = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Order?>(
-      future: _active,
-      builder: (context, snapshot) {
-        final order = snapshot.data;
-        return ListView(
-          children: [
-            const TabHeader(
-              title: 'My deliveries',
-              pill: 'One active delivery at a time',
+    final order = _order;
+    return ListView(
+      children: [
+        const TabHeader(
+          title: 'My deliveries',
+          pill: 'One active delivery at a time',
+        ),
+        const SizedBox(height: 20),
+        if (_loading && order == null)
+          const Padding(
+            padding: EdgeInsets.only(top: 40),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.accent),
             ),
-            const SizedBox(height: 20),
-            if (snapshot.connectionState != ConnectionState.done)
-              const Padding(
-                padding: EdgeInsets.only(top: 40),
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
-                ),
-              )
-            else if (snapshot.hasError)
-              Text(
-                "Couldn't load your delivery.",
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
-            else if (order == null)
-              const GlassPanel(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
-                child: EmptyState(
-                  icon: Icons.route,
-                  title: 'No active delivery',
-                  subtitle: 'Accept a request to start delivering.',
-                ),
-              )
-            else
-              _ActiveDelivery(order: order),
-          ],
-        );
-      },
+          )
+        else if (_loadFailed)
+          Text(
+            "Couldn't load your delivery.",
+            style: Theme.of(context).textTheme.bodyMedium,
+          )
+        else if (order == null)
+          const GlassPanel(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+            child: EmptyState(
+              icon: Icons.route,
+              title: 'No active delivery',
+              subtitle: 'Accept a request to start delivering.',
+            ),
+          )
+        else
+          _ActiveDelivery(
+            order: order,
+            updating: _updating,
+            onAdvance: () => _advance(order),
+          ),
+      ],
     );
   }
 }
 
 class _ActiveDelivery extends StatelessWidget {
-  const _ActiveDelivery({required this.order});
+  const _ActiveDelivery({
+    required this.order,
+    required this.updating,
+    required this.onAdvance,
+  });
 
   final Order order;
+  final bool updating;
+  final VoidCallback onAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +242,15 @@ class _ActiveDelivery extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        PrimaryButton(
+          label: pickedUp
+              ? 'Mark as delivered · ${formatCents(order.totalPayCents)}'
+              : 'Mark as picked up',
+          loading: updating,
+          onPressed: onAdvance,
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
