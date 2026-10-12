@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_tab_bar.dart';
@@ -9,7 +10,9 @@ import 'my_deliveries_tab.dart';
 
 /// K-01: Courier home with three tabs - Available, My Deliveries, Earnings.
 class CourierHomeScreen extends StatefulWidget {
-  const CourierHomeScreen({super.key});
+  const CourierHomeScreen({super.key, required this.service});
+
+  final CourierService service;
 
   @override
   State<CourierHomeScreen> createState() => _CourierHomeScreenState();
@@ -44,10 +47,10 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                       // IndexedStack keeps each tab's scroll position.
                       child: IndexedStack(
                         index: _selectedTab,
-                        children: const [
-                          AvailableTab(),
-                          MyDeliveriesTab(),
-                          EarningsTab(),
+                        children: [
+                          AvailableTab(service: widget.service),
+                          const MyDeliveriesTab(),
+                          const EarningsTab(),
                         ],
                       ),
                     ),
