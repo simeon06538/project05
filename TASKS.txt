@@ -15,6 +15,38 @@ Delivery fee idea: base fee $2.00 + $0.50 per 0.25 mi from the Union
 (round up), capped at $6.00. Tip options: $0 / $1 / $2 / $3 / custom.
 Courier pay = delivery fee + tip.
 
+--------------------------------------------------
+UI STYLE + PROMPT FOR YOUR AI ASSISTANT
+--------------------------------------------------
+Every screen uses the same look: dark purple gradient background,
+frosted-glass cards, a glass segmented tab bar on top, light text, and a
+soft purple pill for the selected tab / main button. Use these two free
+pub.dev packages (already in pubspec.yaml):
+  - glassmorphism  (glass cards/panels)  https://pub.dev/packages/glassmorphism
+  - lottie         (animations)          https://pub.dev/packages/lottie
+
+If you use an AI assistant (ChatGPT, Claude, Copilot, etc.), paste this
+prompt at the start of your session:
+
+  >>> BEGIN PROMPT >>>
+  You are helping build a Flutter app for a campus food-delivery class
+  project. Follow these rules for ALL UI code you write:
+  1. Use the free `glassmorphism` package (GlassmorphicContainer /
+     GlassmorphicFlexContainer) for cards, panels, tab bars and inputs.
+     Reuse the shared widgets in lib/widgets/ (GlassPanel, GlassTabBar)
+     and the colors in lib/theme/app_theme.dart instead of creating new
+     ones. Do not hand-roll BackdropFilter glass effects.
+  2. Use the free `lottie` package (Lottie.asset) for animations such
+     as loading, empty states and success screens. Put animation JSON
+     files in assets/lottie/ and register them in pubspec.yaml. Only use
+     free animations (e.g. LottieFiles free assets) or ones we made.
+  3. Keep the dark purple gradient background (AppBackground widget),
+     white/light text, and rounded corners (radius 16-20).
+  4. Do not add other UI packages without asking the team first.
+  5. Keep each change small enough to be one commit, and name the task
+     ID (e.g. K-03) in the commit message.
+  <<< END PROMPT <<<
+
 Each task below is sized to be roughly ONE commit. Commit after each one.
 Tag Trello cards with the task ID (e.g. C-04) and put it in the commit
 message, e.g.  "C-04: add tip selector to request screen".
