@@ -10,7 +10,14 @@ const demoCourierId = 'courier-demo';
 
 void main() {
   // TODO(K-12): swap in the real API service once the server is ready.
-  runApp(CampusDeliveryApp(courierService: MockCourierService()));
+  // New demo requests trickle in so auto-refresh (K-11) has something to show.
+  runApp(
+    CampusDeliveryApp(
+      courierService: MockCourierService(
+        newRequestEvery: const Duration(seconds: 30),
+      ),
+    ),
+  );
 }
 
 class CampusDeliveryApp extends StatelessWidget {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
@@ -16,6 +18,7 @@ import 'tab_header.dart';
 /// K-06: while the courier has an active delivery, shows a banner and
 /// locks accepting on the detail screen.
 /// K-10: sort by oldest, highest pay or closest, and filter to tipped ones.
+/// K-11: pull to refresh, a refresh button, and auto-refresh while shown.
 class AvailableTab extends StatefulWidget {
   const AvailableTab({
     super.key,
@@ -23,6 +26,7 @@ class AvailableTab extends StatefulWidget {
     required this.courierId,
     this.onViewActiveDelivery,
     this.isVisible = true,
+    this.refreshEvery = const Duration(seconds: 15),
   });
 
   final CourierService service;
@@ -35,6 +39,10 @@ class AvailableTab extends StatefulWidget {
   /// reflect anything that changed on the other tabs.
   final bool isVisible;
 
+  /// How often to quietly reload while the tab is visible; null turns
+  /// auto-refresh off.
+  final Duration? refreshEvery;
+
   @override
   State<AvailableTab> createState() => _AvailableTabState();
 }
@@ -45,17 +53,52 @@ class _AvailableTabState extends State<AvailableTab> {
   late Future<_TabData> _data;
   RequestSort _sort = RequestSort.oldest;
   bool _tipsOnly = false;
+  Timer? _autoRefresh;
 
   @override
   void initState() {
     super.initState();
     _data = _load();
+    _syncAutoRefresh();
   }
 
   @override
   void didUpdateWidget(AvailableTab oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isVisible && !oldWidget.isVisible) _data = _load();
+    _syncAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _autoRefresh?.cancel();
+    super.dispose();
+  }
+
+  /// Runs the auto-refresh timer only while this tab is on screen.
+  void _syncAutoRefresh() {
+    final every = widget.refreshEvery;
+    final shouldRun = widget.isVisible && every != null;
+    if (shouldRun && _autoRefresh == null) {
+      _autoRefresh = Timer.periodic(every, (_) => _refresh());
+    } else if (!shouldRun) {
+      _autoRefresh?.cancel();
+      _autoRefresh = null;
+    }
+  }
+
+  /// Reloads without hiding the current list, for pull-to-refresh, the
+  /// refresh button and the timer.
+  Future<void> _refresh() async {
+    final next = _load();
+    setState(() {
+      _data = next;
+    });
+    try {
+      await next;
+    } catch (_) {
+      // The FutureBuilder shows the error; nothing else to do here.
+    }
   }
 
   Future<_TabData> _load() async {
@@ -115,13 +158,25 @@ class _AvailableTabState extends State<AvailableTab> {
         onTipsOnlyChanged: (on) => setState(() => _tipsOnly = on),
       ),
       const SizedBox(height: 14),
-      Text(
-        shown.length == total
-            ? '$total open $noun'
-            : '${shown.length} of $total open $noun',
-        style: Theme.of(context).textTheme.bodyMedium,
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              shown.length == total
+                  ? '$total open $noun'
+                  : '${shown.length} of $total open $noun',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          IconButton(
+            onPressed: _refresh,
+            tooltip: 'Refresh',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.refresh, color: AppColors.accentSoft),
+          ),
+        ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 4),
       if (shown.isEmpty)
         GlassPanel(
           child: Row(
@@ -158,46 +213,55 @@ class _AvailableTabState extends State<AvailableTab> {
       future: _data,
       builder: (context, snapshot) {
         final data = snapshot.data;
-        return ListView(
-          children: [
-            const TabHeader(
-              title: 'Available requests',
-              pill: 'Pickup, drop-off and pay shown before you accept',
-            ),
-            const SizedBox(height: 20),
-            if (snapshot.connectionState != ConnectionState.done)
-              const Padding(
-                padding: EdgeInsets.only(top: 40),
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
-                ),
-              )
-            else if (snapshot.hasError || data == null)
-              Text(
-                "Couldn't load requests.",
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
-            else ...[
-              if (data.active case final active?) ...[
-                ActiveDeliveryBanner(
-                  order: active,
-                  onView: widget.onViewActiveDelivery,
-                ),
-                const SizedBox(height: 16),
-              ],
-              if (data.requests.isEmpty)
-                const GlassPanel(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
-                  child: EmptyState(
-                    icon: Icons.delivery_dining,
-                    title: 'No requests right now',
-                    subtitle: 'New delivery requests will show up here.',
+        final loading = snapshot.connectionState != ConnectionState.done;
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          color: AppColors.accent,
+          child: ListView(
+            // Always scrollable so pull-to-refresh works on a short list.
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const TabHeader(
+                title: 'Available requests',
+                pill: 'Pickup, drop-off and pay shown before you accept',
+              ),
+              const SizedBox(height: 20),
+              // A refresh keeps the old list on screen until the new one
+              // arrives; the spinner is only for the very first load.
+              if (loading && data == null)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
                   ),
                 )
-              else
-                ..._buildList(data),
+              else if ((snapshot.hasError && !loading) || data == null)
+                Text(
+                  "Couldn't load requests.",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                )
+              else ...[
+                if (data.active case final active?) ...[
+                  ActiveDeliveryBanner(
+                    order: active,
+                    onView: widget.onViewActiveDelivery,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (data.requests.isEmpty)
+                  const GlassPanel(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+                    child: EmptyState(
+                      icon: Icons.delivery_dining,
+                      title: 'No requests right now',
+                      subtitle: 'New delivery requests will show up here.',
+                    ),
+                  )
+                else
+                  ..._buildList(data),
+              ],
             ],
-          ],
+          ),
         );
       },
     );
