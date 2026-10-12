@@ -1,0 +1,173 @@
+PROJECT 05 - CAMPUS DELIVERY APP: TASK BREAKDOWN
+==================================================
+
+Overview
+--------
+Customers request delivery of food they already paid for with Paw Points in
+the existing campus ordering app. Our app only handles the delivery request.
+Payments are SIMULATED for the class demo:
+  - Customer pays a delivery fee (based on distance from the Union) plus an
+    optional tip.
+  - Courier sees pickup, drop-off, and total pay before accepting.
+  - After delivery, the pay goes into the courier's demo earnings balance.
+
+Delivery fee idea: base fee $2.00 + $0.50 per 0.25 mi from the Union
+(round up), capped at $6.00. Tip options: $0 / $1 / $2 / $3 / custom.
+Courier pay = delivery fee + tip.
+
+Each task below is sized to be roughly ONE commit. Commit after each one.
+Tag Trello cards with the task ID (e.g. C-04) and put it in the commit
+message, e.g.  "C-04: add tip selector to request screen".
+
+
+--------------------------------------------------
+SHARED - DO THESE FIRST (whole group, week 1)
+--------------------------------------------------
+S-01  Agree on the data models and write them into docs/models.md:
+      User { id, name, email, role: customer|courier, earnings }
+      Order { id, customerId, courierId?, pickupLocation, dropoffLocation,
+              distanceMiles, deliveryFee, tip, totalPay, status,
+              pawPointsOrderNumber, createdAt, updatedAt }
+      Status values: requested -> accepted -> picked_up -> delivered
+                     (plus: cancelled)
+S-02  Agree on the API contract (endpoints, request/response JSON) and write
+      it into docs/api.md. Person 3 owns this file after it's agreed.
+S-03  Agree on the list of campus locations (name + lat/long or distance
+      from the Union) and put it in a shared constants file.
+S-04  Set up the Flutter project skeleton, folder structure
+      (lib/models, lib/screens/customer, lib/screens/courier, lib/services),
+      and branch naming rules (feature/<task-id>-short-name).
+
+
+--------------------------------------------------
+PERSON 1 - CUSTOMER SCREENS
+--------------------------------------------------
+C-01  Create the Dart model classes for Order and User (fromJson/toJson)
+      matching docs/models.md.
+C-02  Build a role-selection / simple login screen (pick Customer or
+      Courier, enter name) that routes to the right home screen.
+C-03  Build the Customer Home screen: "Request a Delivery" button and a list
+      of the customer's past/active orders.
+C-04  Build the Request Delivery screen layout: pickup location, drop-off
+      location, Paw Points order number field.
+C-05  Add pickup/drop-off dropdowns populated from the shared campus
+      locations list (S-03).
+C-06  Write the fee calculator (distance from Union -> delivery fee) as a
+      pure Dart function in lib/services/pricing.dart.
+C-07  Write unit tests for the fee calculator (base fee, rounding, cap).
+C-08  Add the tip selector ($0/$1/$2/$3/custom) with input validation.
+C-09  Show a live price summary: delivery fee + tip = total.
+C-10  Add form validation (both locations required, pickup != drop-off,
+      order number required).
+C-11  Build the Order Confirmation screen ("Confirm & Pay (demo)").
+C-12  Create a mock order service that returns fake data so screens work
+      before the server is ready.
+C-13  Swap the mock service for real API calls (POST /orders) once
+      Person 3's endpoint is up.
+C-14  Build the Order Tracking screen showing current status with a
+      progress indicator (requested/accepted/picked up/delivered).
+C-15  Add auto-refresh / polling (or live updates) on the tracking screen.
+C-16  Allow customer to cancel an order while it is still "requested".
+C-17  Add loading spinners and error messages (no network, server error).
+C-18  Polish: consistent theme, icons, spacing, empty states.
+C-19  Widget tests for the Request Delivery form and tip selector.
+
+
+--------------------------------------------------
+PERSON 2 - COURIER SCREENS
+--------------------------------------------------
+K-01  Build the Courier Home screen with tabs: Available / My Deliveries /
+      Earnings.
+K-02  Create a mock courier service with fake open requests so screens can
+      be built before the server is ready.
+K-03  Build the Available Requests list: each card shows pickup, drop-off,
+      distance, and total pay.
+K-04  Build the Request Detail screen: full breakdown (delivery fee, tip,
+      total pay, Paw Points order number).
+K-05  Add the "Accept Delivery" button with a confirm dialog.
+K-06  Prevent accepting a second delivery while one is active (UI side).
+K-07  Build the Active Delivery screen showing the current job.
+K-08  Add status update buttons: "Picked Up" -> "Delivered", only showing
+      the next valid step.
+K-09  Build the Earnings screen: demo balance + list of completed
+      deliveries with pay for each.
+K-10  Add sorting/filtering of available requests (highest pay, closest).
+K-11  Add pull-to-refresh / polling on the Available list.
+K-12  Swap the mock service for real API calls (GET /orders?status=
+      requested, PATCH /orders/:id/accept, PATCH /orders/:id/status,
+      GET /couriers/:id/earnings).
+K-13  Handle "already accepted by someone else" error gracefully.
+K-14  Add loading and error states to every courier screen.
+K-15  Polish: theme matches customer side, icons, empty states
+      ("No requests right now").
+K-16  Widget tests for the request card and status-update buttons.
+
+
+--------------------------------------------------
+PERSON 3 - SERVER / DATABASE
+--------------------------------------------------
+B-01  Choose the backend (e.g. Firebase Firestore, or Node/Express +
+      SQLite) and initialize the server project in /server.
+B-02  Finalize docs/api.md with every endpoint and example JSON.
+B-03  Create the database schema / collections: users, orders.
+B-04  Add seed data: a few demo customers, couriers, and campus locations.
+B-05  Endpoint: create/get user (POST /users, GET /users/:id).
+B-06  Endpoint: create order (POST /orders) - server recalculates the fee
+      from distance so the client can't fake it.
+B-07  Endpoint: list orders (by customer, by courier, by status).
+B-08  Endpoint: accept order - must be atomic so two couriers can't
+      accept the same order.
+B-09  Endpoint: update status - enforce valid transitions only
+      (requested -> accepted -> picked_up -> delivered; cancel only from
+      requested).
+B-10  On "delivered", add totalPay to the courier's demo earnings balance
+      (in a transaction).
+B-11  Endpoint: get courier earnings + delivery history.
+B-12  Input validation and consistent error responses (400/404/409).
+B-13  Enable CORS / connection config so the Flutter app can reach it;
+      put the base URL in one config file.
+B-14  Unit tests for the fee calculation and status transitions.
+B-15  API tests for each endpoint (happy path + error cases).
+B-16  Deploy / document how to run the server locally (README section).
+B-17  Add a "reset demo data" script for before the demo recording.
+
+
+--------------------------------------------------
+PERSON 4 - BUILD, INTEGRATION TESTING, DEMO
+(split between the three of us until a 4th member joins)
+--------------------------------------------------
+D-01  Set up GitHub Actions: run `flutter analyze` on every push/PR.
+D-02  Add `flutter test` to the CI workflow.
+D-03  Add a CI job for the server tests (B-14/B-15).
+D-04  Add a CI step that builds the app (web or APK) and uploads it as an
+      artifact.
+D-05  Add a status badge and "how to run" instructions to README.md.
+D-06  Add a pull request template with a checklist (tests pass, Trello
+      card linked, screenshots).
+D-07  Write an integration test: customer creates an order -> it appears
+      in the courier's Available list.
+D-08  Integration test: courier accepts -> customer sees "accepted".
+D-09  Integration test: courier marks delivered -> earnings increase by
+      the correct total.
+D-10  Integration test: two couriers try to accept the same order -> only
+      one succeeds.
+D-11  Write a manual test checklist (docs/test-plan.md) for edge cases.
+D-12  Keep the Trello board organized: move cards, track blockers.
+D-13  Write the demo video script (customer flow, courier flow, earnings).
+D-14  Record, edit, and upload the demo video; link it in the README.
+
+
+--------------------------------------------------
+DEPENDENCIES / ORDER OF WORK
+--------------------------------------------------
+1. Shared tasks S-01 to S-04 first - everyone is blocked on the models,
+   API contract, and locations list.
+2. Person 3 should start the server immediately after (B-01 to B-09),
+   since Person 1 (C-13) and Person 2 (K-12) need real endpoints, and
+   Person 4's integration tests (D-07 to D-10) need the whole stack.
+3. Persons 1 and 2 build screens in parallel against MOCK services
+   (C-12, K-02) so they aren't blocked waiting on Person 3.
+4. Person 2 needs Person 1's ordering flow (C-13) to produce real orders
+   for end-to-end testing of the courier side.
+5. Person 4's CI work (D-01 to D-06) can start right away; integration
+   tests and the demo video come LAST.
