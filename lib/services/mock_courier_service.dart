@@ -9,14 +9,24 @@ import 'courier_service.dart';
 class MockCourierService implements CourierService {
   MockCourierService({
     this.latency = const Duration(milliseconds: 400),
+    this.newRequestEvery,
     DateTime? now,
   }) {
-    _seed(now ?? DateTime.now());
+    final start = now ?? DateTime.now();
+    _lastNewRequest = start;
+    _seed(start);
   }
 
   /// Fake network delay so loading spinners can be seen. Use
   /// [Duration.zero] in tests.
   final Duration latency;
+
+  /// When set, a new demo request shows up roughly this often (checked on
+  /// each fetch), so refreshing the Available list has something to show.
+  final Duration? newRequestEvery;
+
+  late DateTime _lastNewRequest;
+  int _nextDemo = 0;
 
   final Map<String, Order> _orders = {};
   final Map<String, int> _balances = {};
@@ -24,6 +34,10 @@ class MockCourierService implements CourierService {
   @override
   Future<List<Order>> fetchAvailableRequests() async {
     await _delay();
+    final every = newRequestEvery;
+    if (every != null && DateTime.now().difference(_lastNewRequest) >= every) {
+      addDemoRequest();
+    }
     return _orders.values
         .where((o) => o.status == OrderStatus.requested)
         .toList()
@@ -128,23 +142,56 @@ class MockCourierService implements CourierService {
         2,
       ),
     ];
-    for (var i = 0; i < seed.length; i++) {
-      final (pickup, dropoff, miles, fee, tip, minutesAgo) = seed[i];
-      final created = now.subtract(Duration(minutes: minutesAgo));
-      final id = 'order-${i + 1}';
-      _orders[id] = Order(
-        id: id,
-        customerId: 'customer-${i + 1}',
-        pickupLocation: pickup,
-        dropoffLocation: dropoff,
-        distanceMiles: miles,
-        deliveryFeeCents: fee,
-        tipCents: tip,
-        status: OrderStatus.requested,
-        pawPointsOrderNumber: 'PP-${4810 + i * 7}',
-        createdAt: created,
-        updatedAt: created,
+    for (final (pickup, dropoff, miles, fee, tip, minutesAgo) in seed) {
+      _add(
+        pickup,
+        dropoff,
+        miles,
+        fee,
+        tip,
+        now.subtract(Duration(minutes: minutesAgo)),
       );
     }
+  }
+
+  /// Adds a new open request from a small rotating list of campus spots,
+  /// as if a customer just ordered. Returns the new order.
+  Order addDemoRequest({DateTime? now}) {
+    const pool = [
+      ('Student Union · Taco Bell', 'Business Building', 0.6, 350, 100),
+      ('Student Union · Grill', 'South Residence Hall', 1.0, 400, 0),
+      ('Student Union · Starbucks', 'Music Building', 0.5, 300, 250),
+      ('Student Union · Subway', 'Stadium · Gate 4', 1.4, 500, 200),
+    ];
+    final (pickup, dropoff, miles, fee, tip) = pool[_nextDemo % pool.length];
+    _nextDemo++;
+    final created = now ?? DateTime.now();
+    _lastNewRequest = created;
+    return _add(pickup, dropoff, miles, fee, tip, created);
+  }
+
+  Order _add(
+    String pickup,
+    String dropoff,
+    double miles,
+    int feeCents,
+    int tipCents,
+    DateTime created,
+  ) {
+    final n = _orders.length + 1;
+    final id = 'order-$n';
+    return _orders[id] = Order(
+      id: id,
+      customerId: 'customer-$n',
+      pickupLocation: pickup,
+      dropoffLocation: dropoff,
+      distanceMiles: miles,
+      deliveryFeeCents: feeCents,
+      tipCents: tipCents,
+      status: OrderStatus.requested,
+      pawPointsOrderNumber: 'PP-${4803 + n * 7}',
+      createdAt: created,
+      updatedAt: created,
+    );
   }
 }

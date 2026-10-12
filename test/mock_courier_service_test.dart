@@ -93,4 +93,32 @@ void main() {
     expect(formatCents(350), r'$3.50');
     expect(formatCents(0), r'$0.00');
   });
+
+  demoRequestTests();
+}
+
+void demoRequestTests() {
+  test('addDemoRequest adds a new open request', () async {
+    final service = MockCourierService(latency: Duration.zero);
+    final added = service.addDemoRequest();
+
+    final requests = await service.fetchAvailableRequests();
+    expect(requests, hasLength(6));
+    expect(requests.last.id, added.id);
+    expect(added.status, OrderStatus.requested);
+    // Same fee rule as the seed data: $2.00 + $0.50 per 0.25 mi.
+    expect(added.deliveryFeeCents, 350);
+  });
+
+  test('newRequestEvery adds a request once the interval has passed', () async {
+    final service = MockCourierService(
+      latency: Duration.zero,
+      newRequestEvery: const Duration(minutes: 1),
+      now: DateTime.now().subtract(const Duration(minutes: 2)),
+    );
+
+    expect(await service.fetchAvailableRequests(), hasLength(6));
+    // The timer restarts, so an immediate second fetch adds nothing.
+    expect(await service.fetchAvailableRequests(), hasLength(6));
+  });
 }
