@@ -154,6 +154,19 @@ class MockCourierService implements CourierService {
     }
   }
 
+  /// Simulates a different courier accepting [orderId], so the "someone
+  /// else got it first" path (K-13) can be tested and demoed. Does nothing
+  /// if the order is no longer open.
+  void takeByOtherCourier(String orderId) {
+    final order = _orders[orderId];
+    if (order == null || order.status != OrderStatus.requested) return;
+    _orders[orderId] = order.copyWith(
+      courierId: 'other-courier',
+      status: OrderStatus.accepted,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Adds a new open request from a small rotating list of campus spots,
   /// as if a customer just ordered. Returns the new order.
   Order addDemoRequest({DateTime? now}) {

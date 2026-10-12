@@ -98,6 +98,19 @@ void main() {
 }
 
 void demoRequestTests() {
+  test('takeByOtherCourier removes the order and blocks accepting', () async {
+    final service = MockCourierService(latency: Duration.zero);
+    final order = (await service.fetchAvailableRequests()).first;
+
+    service.takeByOtherCourier(order.id);
+
+    expect(await service.fetchAvailableRequests(), hasLength(4));
+    expect(
+      () => service.acceptRequest(order.id, 'courier-a'),
+      throwsA(isA<OrderAlreadyTakenException>()),
+    );
+  });
+
   test('addDemoRequest adds a new open request', () async {
     final service = MockCourierService(latency: Duration.zero);
     final added = service.addDemoRequest();
