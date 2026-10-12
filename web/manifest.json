@@ -1,11 +1,11 @@
 {
-    "name": "campus_delivery",
-    "short_name": "campus_delivery",
+    "name": "Campus Delivery",
+    "short_name": "Campus Delivery",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#120A24",
+    "theme_color": "#2A1650",
+    "description": "Campus food delivery: request a delivery or deliver orders around campus.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
