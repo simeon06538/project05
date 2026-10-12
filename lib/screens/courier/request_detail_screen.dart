@@ -12,18 +12,23 @@ import 'order_widgets.dart';
 /// K-04: full breakdown of one request before the courier accepts it.
 /// K-05: "Accept delivery" button with a confirm dialog. Pops with the
 /// accepted [Order] on success.
+/// K-06: the button is locked while the courier has an active delivery.
 class RequestDetailScreen extends StatefulWidget {
   const RequestDetailScreen({
     super.key,
     required this.order,
     required this.service,
     required this.courierId,
+    this.hasActiveDelivery = false,
     this.now,
   });
 
   final Order order;
   final CourierService service;
   final String courierId;
+
+  /// True when the courier is already on a delivery and can't accept.
+  final bool hasActiveDelivery;
 
   /// Overridable clock so tests get a stable "x min ago".
   final DateTime? now;
@@ -34,6 +39,7 @@ class RequestDetailScreen extends StatefulWidget {
 
 class _RequestDetailScreenState extends State<RequestDetailScreen> {
   bool _accepting = false;
+  late bool _locked = widget.hasActiveDelivery;
 
   Future<void> _accept() async {
     final order = widget.order;
@@ -46,13 +52,23 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         widget.courierId,
       );
       if (mounted) Navigator.of(context).pop(accepted);
+    } on ActiveDeliveryException catch (e) {
+      // Another screen or device accepted a delivery since we opened this.
+      _showError(e, lock: true);
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _accepting = false);
-      // K-06 / K-13 replace this with friendlier handling per error type.
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      // K-13 adds friendlier handling for "already taken".
+      _showError(e);
     }
+  }
+
+  void _showError(Object error, {bool lock = false}) {
+    if (!mounted) return;
+    setState(() {
+      _accepting = false;
+      _locked = _locked || lock;
+    });
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(error.toString())));
   }
 
   @override
@@ -200,10 +216,12 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     child: PrimaryButton(
-                      label:
-                          'Accept delivery · ${formatCents(order.totalPayCents)}',
+                      label: _locked
+                          ? 'Finish your current delivery first'
+                          : 'Accept delivery · '
+                                '${formatCents(order.totalPayCents)}',
                       loading: _accepting,
-                      onPressed: _accept,
+                      onPressed: _locked ? null : _accept,
                     ),
                   ),
                 ],
