@@ -5,6 +5,7 @@ import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
+import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
 import 'tab_header.dart';
 
@@ -45,6 +46,12 @@ class _EarningsTabState extends State<EarningsTab> {
     }
   }
 
+  void _reload() {
+    setState(() {
+      _earnings = widget.service.fetchEarnings(widget.courierId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<CourierEarnings>(
@@ -59,17 +66,9 @@ class _EarningsTabState extends State<EarningsTab> {
             ),
             const SizedBox(height: 20),
             if (snapshot.connectionState != ConnectionState.done)
-              const Padding(
-                padding: EdgeInsets.only(top: 40),
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
-                ),
-              )
+              const LoadingState(label: 'Loading earnings…')
             else if (snapshot.hasError || earnings == null)
-              Text(
-                "Couldn't load your earnings.",
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
+              ErrorState(title: "Couldn't load your earnings", onRetry: _reload)
             else ...[
               _BalancePanel(earnings: earnings),
               const SizedBox(height: 20),

@@ -5,6 +5,7 @@ import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
+import '../../widgets/status_views.dart';
 import '../../widgets/primary_button.dart';
 import 'delivered_dialog.dart';
 import 'order_widgets.dart';
@@ -113,17 +114,9 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
         ),
         const SizedBox(height: 20),
         if (_loading && order == null)
-          const Padding(
-            padding: EdgeInsets.only(top: 40),
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.accent),
-            ),
-          )
+          const LoadingState(label: 'Loading your delivery…')
         else if (_loadFailed)
-          Text(
-            "Couldn't load your delivery.",
-            style: Theme.of(context).textTheme.bodyMedium,
-          )
+          ErrorState(title: "Couldn't load your delivery", onRetry: _load)
         else if (order == null)
           const GlassPanel(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),

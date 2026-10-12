@@ -7,6 +7,7 @@ import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
+import '../../widgets/status_views.dart';
 import 'active_delivery_banner.dart';
 import 'request_card.dart';
 import 'request_detail_screen.dart';
@@ -229,17 +230,9 @@ class _AvailableTabState extends State<AvailableTab> {
               // A refresh keeps the old list on screen until the new one
               // arrives; the spinner is only for the very first load.
               if (loading && data == null)
-                const Padding(
-                  padding: EdgeInsets.only(top: 40),
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.accent),
-                  ),
-                )
+                const LoadingState(label: 'Loading requests…')
               else if ((snapshot.hasError && !loading) || data == null)
-                Text(
-                  "Couldn't load requests.",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                )
+                ErrorState(title: "Couldn't load requests", onRetry: _refresh)
               else ...[
                 if (data.active case final active?) ...[
                   ActiveDeliveryBanner(
