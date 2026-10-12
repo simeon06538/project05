@@ -29,5 +29,11 @@ class AppTheme {
       bodyMedium: TextStyle(color: AppColors.textSecondary),
       bodySmall: TextStyle(color: AppColors.textMuted),
     ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xFF3A2470),
+      contentTextStyle: const TextStyle(color: AppColors.textPrimary),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
   );
 }
