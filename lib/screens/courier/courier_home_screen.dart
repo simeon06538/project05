@@ -10,9 +10,16 @@ import 'my_deliveries_tab.dart';
 
 /// K-01: Courier home with three tabs - Available, My Deliveries, Earnings.
 class CourierHomeScreen extends StatefulWidget {
-  const CourierHomeScreen({super.key, required this.service});
+  const CourierHomeScreen({
+    super.key,
+    required this.service,
+    required this.courierId,
+  });
 
   final CourierService service;
+
+  /// The signed-in courier. Comes from the login screen once C-02 exists.
+  final String courierId;
 
   @override
   State<CourierHomeScreen> createState() => _CourierHomeScreenState();
@@ -48,7 +55,10 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                       child: IndexedStack(
                         index: _selectedTab,
                         children: [
-                          AvailableTab(service: widget.service),
+                          AvailableTab(
+                            service: widget.service,
+                            courierId: widget.courierId,
+                          ),
                           const MyDeliveriesTab(),
                           const EarningsTab(),
                         ],

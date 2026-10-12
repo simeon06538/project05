@@ -11,9 +11,14 @@ import 'tab_header.dart';
 
 /// K-03: list of open delivery requests from the [CourierService].
 class AvailableTab extends StatefulWidget {
-  const AvailableTab({super.key, required this.service});
+  const AvailableTab({
+    super.key,
+    required this.service,
+    required this.courierId,
+  });
 
   final CourierService service;
+  final String courierId;
 
   @override
   State<AvailableTab> createState() => _AvailableTabState();
@@ -26,6 +31,32 @@ class _AvailableTabState extends State<AvailableTab> {
   void initState() {
     super.initState();
     _requests = widget.service.fetchAvailableRequests();
+  }
+
+  Future<void> _openDetails(Order order) async {
+    final accepted = await Navigator.of(context).push<Order>(
+      MaterialPageRoute(
+        builder: (_) => RequestDetailScreen(
+          order: order,
+          service: widget.service,
+          courierId: widget.courierId,
+        ),
+      ),
+    );
+    if (accepted == null || !mounted) return;
+
+    // The accepted order is no longer open, so reload the list.
+    setState(() {
+      _requests = widget.service.fetchAvailableRequests();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Delivery accepted · ${formatCents(accepted.totalPayCents)} '
+          'when you drop it off',
+        ),
+      ),
+    );
   }
 
   @override
@@ -70,14 +101,7 @@ class _AvailableTabState extends State<AvailableTab> {
               ),
               const SizedBox(height: 12),
               for (final order in requests) ...[
-                RequestCard(
-                  order: order,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => RequestDetailScreen(order: order),
-                    ),
-                  ),
-                ),
+                RequestCard(order: order, onTap: () => _openDetails(order)),
                 const SizedBox(height: 12),
               ],
             ],
