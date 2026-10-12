@@ -21,6 +21,7 @@ void main() {
 
     await tester.tap(find.text('My Deliveries'));
     await tester.pump();
+    await tester.pump(); // tab reloads its data when shown
     expect(find.text('No active delivery'), findsOneWidget);
 
     await tester.tap(find.text('Earnings'));
