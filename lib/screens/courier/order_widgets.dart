@@ -3,6 +3,15 @@ import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import '../../theme/app_theme.dart';
 
+/// Short relative time, e.g. "Just now", "12 min ago", "3 h ago", "2 d ago".
+String timeAgo(DateTime time, {DateTime? now}) {
+  final minutes = (now ?? DateTime.now()).difference(time).inMinutes;
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return '$minutes min ago';
+  if (minutes < 60 * 24) return '${minutes ~/ 60} h ago';
+  return '${minutes ~/ (60 * 24)} d ago';
+}
+
 /// Pickup -> drop-off with a connecting line. Shared by the request card
 /// and the request detail screen.
 class RouteStops extends StatelessWidget {

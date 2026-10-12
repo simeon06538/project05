@@ -120,7 +120,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                   ),
                                   InfoChip(
                                     icon: Icons.schedule,
-                                    text: _requestedAgo(),
+                                    text: timeAgo(
+                                      widget.order.createdAt,
+                                      now: widget.now,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -231,15 +234,6 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         ),
       ),
     );
-  }
-
-  String _requestedAgo() {
-    final minutes = (widget.now ?? DateTime.now())
-        .difference(widget.order.createdAt)
-        .inMinutes;
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return '$minutes min ago';
-    return '${minutes ~/ 60} h ago';
   }
 }
 
