@@ -27,6 +27,11 @@ class CourierHomeScreen extends StatefulWidget {
 
 class _CourierHomeScreenState extends State<CourierHomeScreen> {
   static const _tabLabels = ['Available', 'My Deliveries', 'Earnings'];
+  static const _tabIcons = [
+    Icons.list_alt_rounded,
+    Icons.delivery_dining,
+    Icons.savings_outlined,
+  ];
 
   int _selectedTab = 0;
 
@@ -46,6 +51,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                   children: [
                     GlassTabBar(
                       labels: _tabLabels,
+                      icons: _tabIcons,
                       selectedIndex: _selectedTab,
                       onSelected: (i) => setState(() => _selectedTab = i),
                     ),
