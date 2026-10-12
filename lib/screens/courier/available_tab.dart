@@ -8,11 +8,14 @@ import '../../widgets/glass_panel.dart';
 import 'active_delivery_banner.dart';
 import 'request_card.dart';
 import 'request_detail_screen.dart';
+import 'request_filters.dart';
+import 'request_sort_bar.dart';
 import 'tab_header.dart';
 
 /// K-03: list of open delivery requests from the [CourierService].
 /// K-06: while the courier has an active delivery, shows a banner and
 /// locks accepting on the detail screen.
+/// K-10: sort by oldest, highest pay or closest, and filter to tipped ones.
 class AvailableTab extends StatefulWidget {
   const AvailableTab({
     super.key,
@@ -40,6 +43,8 @@ typedef _TabData = ({List<Order> requests, Order? active});
 
 class _AvailableTabState extends State<AvailableTab> {
   late Future<_TabData> _data;
+  RequestSort _sort = RequestSort.oldest;
+  bool _tipsOnly = false;
 
   @override
   void initState() {
@@ -94,6 +99,59 @@ class _AvailableTabState extends State<AvailableTab> {
     );
   }
 
+  List<Widget> _buildList(_TabData data) {
+    final total = data.requests.length;
+    final shown = applyRequestFilters(
+      data.requests,
+      sort: _sort,
+      tipsOnly: _tipsOnly,
+    );
+    final noun = total == 1 ? 'request' : 'requests';
+    return [
+      RequestSortBar(
+        sort: _sort,
+        tipsOnly: _tipsOnly,
+        onSortChanged: (sort) => setState(() => _sort = sort),
+        onTipsOnlyChanged: (on) => setState(() => _tipsOnly = on),
+      ),
+      const SizedBox(height: 14),
+      Text(
+        shown.length == total
+            ? '$total open $noun'
+            : '${shown.length} of $total open $noun',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+      const SizedBox(height: 12),
+      if (shown.isEmpty)
+        GlassPanel(
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'No requests with a tip right now.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _tipsOnly = false),
+                child: const Text(
+                  'Show all',
+                  style: TextStyle(color: AppColors.accentSoft),
+                ),
+              ),
+            ],
+          ),
+        ),
+      for (final order in shown) ...[
+        RequestCard(
+          order: order,
+          onTap: () => _openDetails(order, locked: data.active != null),
+        ),
+        const SizedBox(height: 12),
+      ],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_TabData>(
@@ -136,22 +194,8 @@ class _AvailableTabState extends State<AvailableTab> {
                     subtitle: 'New delivery requests will show up here.',
                   ),
                 )
-              else ...[
-                Text(
-                  '${data.requests.length} open '
-                  '${data.requests.length == 1 ? 'request' : 'requests'}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                for (final order in data.requests) ...[
-                  RequestCard(
-                    order: order,
-                    onTap: () =>
-                        _openDetails(order, locked: data.active != null),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ],
+              else
+                ..._buildList(data),
             ],
           ],
         );
