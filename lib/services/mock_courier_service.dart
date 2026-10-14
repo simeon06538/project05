@@ -153,6 +153,20 @@ class MockCourierService implements CourierService {
     }
   }
 
+  /// K-31: puts everything back to how the demo started - the five open
+  /// requests, no active deliveries and zero balances - plus a week of
+  /// history for [withHistoryFor] if given.
+  void resetDemo({String? withHistoryFor}) {
+    final now = DateTime.now();
+    _orders.clear();
+    _balances.clear();
+    _nextDemo = 0;
+    _failuresLeft = 0;
+    _lastNewRequest = now;
+    _seed(now);
+    if (withHistoryFor != null) seedHistory(withHistoryFor, now: now);
+  }
+
   void _seed(DateTime now) {
     // Fees follow the TASKS.txt rule: $2.00 + $0.50 per started 0.25 mi
     // from the Union, capped at $6.00.
