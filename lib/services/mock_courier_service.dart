@@ -71,7 +71,11 @@ class MockCourierService implements CourierService {
   }
 
   @override
-  Future<Order> updateStatus(String orderId, OrderStatus newStatus) async {
+  Future<Order> updateStatus(
+    String orderId,
+    OrderStatus newStatus, {
+    String? dropoffNote,
+  }) async {
     await _delay();
     final order = _find(orderId);
     if (order.status.next != newStatus) {
@@ -83,6 +87,11 @@ class MockCourierService implements CourierService {
       updatedAt: now,
       pickedUpAt: newStatus == OrderStatus.pickedUp ? now : null,
       deliveredAt: newStatus == OrderStatus.delivered ? now : null,
+      dropoffNote:
+          newStatus == OrderStatus.delivered &&
+              (dropoffNote?.trim().isNotEmpty ?? false)
+          ? dropoffNote!.trim()
+          : null,
     );
     if (newStatus == OrderStatus.delivered) {
       _balances.update(
@@ -251,6 +260,8 @@ class MockCourierService implements CourierService {
         acceptedAt: created.add(const Duration(minutes: 3)),
         pickedUpAt: created.add(const Duration(minutes: 12)),
         deliveredAt: delivered,
+        // K-34 demo: yesterday's deliveries came with a drop-off note.
+        dropoffNote: daysAgo == 1 ? 'Left with the front desk' : null,
       );
       _balances.update(
         courierId,

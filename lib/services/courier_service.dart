@@ -21,7 +21,13 @@ abstract class CourierService {
   /// Moves the order to its next status (accepted -> pickedUp -> delivered).
   ///
   /// Throws [InvalidStatusChangeException] for any other transition.
-  Future<Order> updateStatus(String orderId, OrderStatus newStatus);
+  ///
+  /// K-34: [dropoffNote] is saved when the order is marked delivered.
+  Future<Order> updateStatus(
+    String orderId,
+    OrderStatus newStatus, {
+    String? dropoffNote,
+  });
 
   /// Demo balance plus completed deliveries, newest first.
   Future<CourierEarnings> fetchEarnings(String courierId);
