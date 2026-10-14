@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/order.dart';
 import '../../services/courier_service.dart';
@@ -61,6 +62,21 @@ class _EarningsTabState extends State<EarningsTab> {
     });
   }
 
+  Future<void> _copySummary(List<Order> inRange, int balanceCents) async {
+    await Clipboard.setData(
+      ClipboardData(
+        text: earningsSummaryText(
+          range: _range,
+          inRange: inRange,
+          balanceCents: balanceCents,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Earnings summary copied')));
+  }
+
   /// K-39: Today / This week / All time chips, then the stats and history
   /// for that range.
   List<Widget> _rangeSection(CourierEarnings earnings) {
@@ -82,13 +98,28 @@ class _EarningsTabState extends State<EarningsTab> {
       EarningsStatsRow(stats: EarningsStats.from(inRange)),
       const SizedBox(height: 20),
       Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Text(
-          'Completed deliveries · ${inRange.length}',
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
+        padding: const EdgeInsets.only(left: 4, bottom: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Completed deliveries · ${inRange.length}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            // K-40: copy this range's summary to the clipboard.
+            TextButton.icon(
+              onPressed: inRange.isEmpty
+                  ? null
+                  : () => _copySummary(inRange, earnings.balanceCents),
+              icon: const Icon(Icons.copy_rounded, size: 18),
+              label: const Text('Copy summary'),
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+            ),
+          ],
         ),
       ),
       if (all.isEmpty)
