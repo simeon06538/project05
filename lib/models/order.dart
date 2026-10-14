@@ -67,6 +67,22 @@ class Order {
   /// What the courier earns for this delivery.
   int get totalPayCents => deliveryFeeCents + tipCents;
 
+  /// K-28: the same order back on the open list - no courier, not
+  /// accepted. (copyWith can't clear fields, so this builds it directly.)
+  Order reopened(DateTime now) => Order(
+    id: id,
+    customerId: customerId,
+    pickupLocation: pickupLocation,
+    dropoffLocation: dropoffLocation,
+    distanceMiles: distanceMiles,
+    deliveryFeeCents: deliveryFeeCents,
+    tipCents: tipCents,
+    status: OrderStatus.requested,
+    pawPointsOrderNumber: pawPointsOrderNumber,
+    createdAt: createdAt,
+    updatedAt: now,
+  );
+
   Order copyWith({
     String? courierId,
     OrderStatus? status,

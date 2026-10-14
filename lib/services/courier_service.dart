@@ -25,6 +25,12 @@ abstract class CourierService {
 
   /// Demo balance plus completed deliveries, newest first.
   Future<CourierEarnings> fetchEarnings(String courierId);
+
+  /// K-28: gives back an accepted delivery before pickup, so it returns to
+  /// the open list for other couriers. Throws [InvalidStatusChangeException]
+  /// once it's picked up, and [NotYourDeliveryException] if another
+  /// courier has it.
+  Future<Order> releaseDelivery(String orderId, String courierId);
 }
 
 class CourierEarnings {
@@ -67,6 +73,14 @@ class ActiveDeliveryException implements Exception {
 
   @override
   String toString() => 'Finish your current delivery before accepting another.';
+}
+
+class NotYourDeliveryException implements Exception {
+  const NotYourDeliveryException(this.orderId);
+  final String orderId;
+
+  @override
+  String toString() => 'This delivery belongs to another courier.';
 }
 
 class InvalidStatusChangeException implements Exception {
