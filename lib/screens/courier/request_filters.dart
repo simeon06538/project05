@@ -4,7 +4,8 @@ import '../../models/order.dart';
 enum RequestSort {
   oldest('Oldest first'),
   highestPay('Highest pay'),
-  closest('Closest');
+  closest('Closest'),
+  bestPerMile(r'Best $/mi');
 
   const RequestSort(this.label);
 
@@ -48,6 +49,10 @@ List<Order> applyRequestFilters(
     RequestSort.closest => (a, b) {
       final byDistance = a.distanceMiles.compareTo(b.distanceMiles);
       return byDistance != 0 ? byDistance : byAge(a, b);
+    },
+    RequestSort.bestPerMile => (a, b) {
+      final byRate = b.payPerMileCents.compareTo(a.payPerMileCents);
+      return byRate != 0 ? byRate : byAge(a, b);
     },
   });
   return result;
