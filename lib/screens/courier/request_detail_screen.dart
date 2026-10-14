@@ -7,6 +7,7 @@ import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
 import 'accept_dialog.dart';
+import 'accepted_dialog.dart';
 import 'order_widgets.dart';
 import 'request_gone_dialog.dart';
 
@@ -53,6 +54,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         order.id,
         widget.courierId,
       );
+      if (!mounted) return;
+      // Stop the button spinner so it isn't left running behind the dialog.
+      setState(() => _accepting = false);
+      await showAcceptedSuccess(context, accepted);
       if (mounted) Navigator.of(context).pop(accepted);
     } on ActiveDeliveryException catch (e) {
       // Another screen or device accepted a delivery since we opened this.

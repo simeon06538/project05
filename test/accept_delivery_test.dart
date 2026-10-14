@@ -65,6 +65,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Accept'));
     await tester.pumpAndSettle();
+    expect(find.text('Delivery accepted!'), findsOneWidget);
+    await tester.tap(find.text('Start delivery'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Request details'), findsNothing);
     expect(find.text('4 open requests'), findsOneWidget);

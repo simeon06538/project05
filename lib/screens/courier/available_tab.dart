@@ -151,6 +151,8 @@ class _AvailableTabState extends State<AvailableTab> {
         ),
       ),
     );
+    // K-19: go straight to the new delivery.
+    widget.onViewActiveDelivery?.call();
   }
 
   List<Widget> _buildList(_TabData data) {
