@@ -7,6 +7,7 @@ import '../../services/courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
+import '../../widgets/primary_button.dart';
 import '../../widgets/status_views.dart';
 import 'active_delivery_banner.dart';
 import 'request_card.dart';
@@ -28,6 +29,8 @@ class AvailableTab extends StatefulWidget {
     this.onViewActiveDelivery,
     this.isVisible = true,
     this.refreshEvery = const Duration(seconds: 15),
+    this.isOnline = true,
+    this.onGoOnline,
   });
 
   final CourierService service;
@@ -43,6 +46,10 @@ class AvailableTab extends StatefulWidget {
   /// How often to quietly reload while the tab is visible; null turns
   /// auto-refresh off.
   final Duration? refreshEvery;
+
+  /// K-18: while offline no requests are shown or fetched.
+  final bool isOnline;
+  final VoidCallback? onGoOnline;
 
   @override
   State<AvailableTab> createState() => _AvailableTabState();
@@ -66,7 +73,10 @@ class _AvailableTabState extends State<AvailableTab> {
   @override
   void didUpdateWidget(AvailableTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isVisible && !oldWidget.isVisible) _data = _load();
+    final cameBack =
+        (widget.isVisible && !oldWidget.isVisible) ||
+        (widget.isOnline && !oldWidget.isOnline);
+    if (cameBack) _data = _load();
     _syncAutoRefresh();
   }
 
@@ -79,7 +89,7 @@ class _AvailableTabState extends State<AvailableTab> {
   /// Runs the auto-refresh timer only while this tab is on screen.
   void _syncAutoRefresh() {
     final every = widget.refreshEvery;
-    final shouldRun = widget.isVisible && every != null;
+    final shouldRun = widget.isVisible && widget.isOnline && every != null;
     if (shouldRun && _autoRefresh == null) {
       _autoRefresh = Timer.periodic(every, (_) => _refresh());
     } else if (!shouldRun) {
@@ -208,8 +218,33 @@ class _AvailableTabState extends State<AvailableTab> {
     ];
   }
 
+  Widget _buildOffline() {
+    return ListView(
+      children: [
+        const TabHeader(
+          title: 'Available requests',
+          pill: 'Pickup, drop-off and pay shown before you accept',
+        ),
+        const SizedBox(height: 20),
+        const GlassPanel(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+          child: EmptyState(
+            icon: Icons.power_settings_new_rounded,
+            title: "You're offline",
+            subtitle: 'Go online to see and accept delivery requests.',
+          ),
+        ),
+        if (widget.onGoOnline != null) ...[
+          const SizedBox(height: 16),
+          PrimaryButton(label: 'Go online', onPressed: widget.onGoOnline),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!widget.isOnline) return _buildOffline();
     return FutureBuilder<_TabData>(
       future: _data,
       builder: (context, snapshot) {
