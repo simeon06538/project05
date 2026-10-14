@@ -20,6 +20,10 @@ Future<void> _deliver(
 }
 
 Future<void> _pumpTab(WidgetTester tester, MockCourierService service) async {
+  // A tall phone so the chart, stats and history all fit on screen.
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -57,7 +61,8 @@ void main() {
     expect(find.text(r'$3.00'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.text(requests[0].dropoffLocation), findsOneWidget);
-    expect(find.text(requests[1].dropoffLocation), findsOneWidget);
+    // In the history and as the Best delivery tile ($5.50).
+    expect(find.text(requests[1].dropoffLocation), findsNWidgets(2));
     expect(find.text(r'+$4.00'), findsOneWidget);
     expect(find.text(r'+$5.50'), findsOneWidget);
     expect(find.text('No completed deliveries yet'), findsNothing);

@@ -7,6 +7,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
+import 'earnings_stats.dart';
 import 'tab_header.dart';
 import 'weekly_earnings_chart.dart';
 
@@ -78,6 +79,10 @@ class _EarningsTabState extends State<EarningsTab> {
                   completed: earnings.completedDeliveries,
                 ),
               ),
+              const SizedBox(height: 12),
+              EarningsStatsRow(
+                stats: EarningsStats.from(earnings.completedDeliveries),
+              ),
               const SizedBox(height: 20),
               const Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 8),
@@ -119,7 +124,6 @@ class _BalancePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final completed = earnings.completedDeliveries;
-    final tipsCents = completed.fold(0, (sum, o) => sum + o.tipCents);
     return GlassPanel(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -146,8 +150,6 @@ class _BalancePanel extends StatelessWidget {
             label: 'Completed deliveries',
             value: '${completed.length}',
           ),
-          const SizedBox(height: 10),
-          _SummaryRow(label: 'Tips earned', value: formatCents(tipsCents)),
         ],
       ),
     );
