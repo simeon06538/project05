@@ -48,6 +48,9 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
   /// K-31: editable in Settings (from the login screen once C-02 exists).
   late String _name = widget.courierName;
 
+  /// K-41: daily earnings goal, $20 to start.
+  int _dailyGoalCents = 2000;
+
   /// Bumped on "Reset demo data" so every tab rebuilds and reloads.
   int _resetGeneration = 0;
 
@@ -58,6 +61,9 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
         builder: (_) => SettingsScreen(
           name: _name,
           onNameChanged: (name) => setState(() => _name = name),
+          dailyGoalCents: _dailyGoalCents,
+          onDailyGoalChanged: (cents) =>
+              setState(() => _dailyGoalCents = cents),
           onResetDemo: service is MockCourierService
               ? () {
                   service.resetDemo(withHistoryFor: widget.courierId);
@@ -134,6 +140,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                             EarningsTab(
                               service: widget.service,
                               courierId: widget.courierId,
+                              dailyGoalCents: _dailyGoalCents,
                               isVisible: _selectedTab == 2,
                             ),
                           ].indexed)

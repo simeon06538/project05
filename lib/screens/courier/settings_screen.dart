@@ -4,8 +4,11 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
+import '../../models/order.dart';
 import 'courier_header.dart';
+import 'daily_goal_ring.dart';
 import 'detail_widgets.dart';
+import 'request_sort_bar.dart';
 
 /// K-31: change the display name and reset the demo data.
 class SettingsScreen extends StatefulWidget {
@@ -14,6 +17,8 @@ class SettingsScreen extends StatefulWidget {
     required this.name,
     required this.onNameChanged,
     this.onResetDemo,
+    this.dailyGoalCents,
+    this.onDailyGoalChanged,
   });
 
   final String name;
@@ -21,6 +26,10 @@ class SettingsScreen extends StatefulWidget {
 
   /// Only offered while the app runs on the demo (mock) service.
   final VoidCallback? onResetDemo;
+
+  /// K-41: current daily goal and where to send a new one.
+  final int? dailyGoalCents;
+  final ValueChanged<int>? onDailyGoalChanged;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -31,6 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   late final _nameController = TextEditingController(text: widget.name);
   late String _savedName = widget.name;
+  late int? _goalCents = widget.dailyGoalCents;
 
   @override
   void initState() {
@@ -92,79 +102,123 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
                 children: [
-                  Row(
-                    children: [
-                      GlassBackButton(onTap: () => Navigator.of(context).pop()),
-                      const SizedBox(width: 12),
-                      Text('Settings', style: textTheme.headlineSmall),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const SectionLabel('Profile'),
-                  GlassPanel(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                  // Header stays pinned so Back is always reachable.
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Row(
                       children: [
-                        // Live preview of how the header will look.
-                        CourierHeader(name: _draft.isEmpty ? '?' : _draft),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _nameController,
-                          maxLength: _maxNameLength,
-                          textCapitalization: TextCapitalization.words,
-                          style: const TextStyle(color: AppColors.textPrimary),
-                          decoration: InputDecoration(
-                            labelText: 'Display name',
-                            errorText: _draft.isEmpty
-                                ? 'Enter a name customers will see'
-                                : null,
-                          ),
-                          onSubmitted: (_) {
-                            if (_canSave) _saveName();
-                          },
+                        GlassBackButton(
+                          onTap: () => Navigator.of(context).pop(),
                         ),
-                        const SizedBox(height: 8),
-                        PrimaryButton(
-                          label: 'Save name',
-                          onPressed: _canSave ? _saveName : null,
-                        ),
+                        const SizedBox(width: 12),
+                        Text('Settings', style: textTheme.headlineSmall),
                       ],
                     ),
                   ),
-                  if (widget.onResetDemo != null) ...[
-                    const SizedBox(height: 20),
-                    const SectionLabel('Demo'),
-                    GlassPanel(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Start the class demo over with the original '
-                            'requests and earnings.',
-                            style: textTheme.bodyMedium,
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      children: [
+                        const SectionLabel('Profile'),
+                        GlassPanel(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Live preview of how the header will look.
+                              CourierHeader(
+                                name: _draft.isEmpty ? '?' : _draft,
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _nameController,
+                                maxLength: _maxNameLength,
+                                textCapitalization: TextCapitalization.words,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: 'Display name',
+                                  errorText: _draft.isEmpty
+                                      ? 'Enter a name customers will see'
+                                      : null,
+                                ),
+                                onSubmitted: (_) {
+                                  if (_canSave) _saveName();
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                              PrimaryButton(
+                                label: 'Save name',
+                                onPressed: _canSave ? _saveName : null,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: _resetDemo,
-                            icon: const Icon(Icons.restart_alt_rounded),
-                            label: const Text('Reset demo data'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(48),
+                        ),
+                        if (widget.onDailyGoalChanged != null) ...[
+                          const SizedBox(height: 20),
+                          const SectionLabel('Daily goal'),
+                          GlassPanel(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'How much do you want to earn each day?',
+                                  style: textTheme.bodyMedium,
+                                ),
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    for (final cents in dailyGoalOptionsCents)
+                                      FilterPill(
+                                        label: formatCents(cents),
+                                        selected: cents == _goalCents,
+                                        onTap: () {
+                                          setState(() => _goalCents = cents);
+                                          widget.onDailyGoalChanged!(cents);
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
+                        if (widget.onResetDemo != null) ...[
+                          const SizedBox(height: 20),
+                          const SectionLabel('Demo'),
+                          GlassPanel(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  'Start the class demo over with the original '
+                                  'requests and earnings.',
+                                  style: textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton.icon(
+                                  onPressed: _resetDemo,
+                                  icon: const Icon(Icons.restart_alt_rounded),
+                                  label: const Text('Reset demo data'),
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(48),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                        Text(
+                          'Campus Delivery · class prototype · no money is '
+                          'transferred.',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: 20),
-                  Text(
-                    'Campus Delivery · class prototype · no money is '
-                    'transferred.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall,
                   ),
                 ],
               ),
