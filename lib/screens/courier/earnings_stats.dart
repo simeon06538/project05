@@ -171,3 +171,25 @@ List<Order> filterByRange(
         o,
   ];
 }
+
+/// K-40: a short plain-text summary of [range]'s earnings, for pasting
+/// into a chat or notes.
+String earningsSummaryText({
+  required EarningsRange range,
+  required List<Order> inRange,
+  required int balanceCents,
+}) {
+  final stats = EarningsStats.from(inRange);
+  final lines = [
+    'Campus Delivery earnings · ${range.label}',
+    'Deliveries: ${stats.count}',
+    'Earned: ${formatCents(stats.totalCents)} '
+        '(tips ${formatCents(stats.tipsCents)})',
+    if (stats.averageCents case final average?)
+      'Average: ${formatCents(average)} per delivery',
+    if (stats.best case final best?)
+      'Best: ${formatCents(best.totalPayCents)} to ${best.dropoffLocation}',
+    'Demo balance: ${formatCents(balanceCents)}',
+  ];
+  return lines.join('\n');
+}
