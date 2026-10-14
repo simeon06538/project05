@@ -34,13 +34,17 @@ void main() {
   testWidgets('starts at a zero balance with the empty state', (tester) async {
     await _pumpTab(tester, MockCourierService(latency: Duration.zero));
 
-    expect(find.text(r'$0.00'), findsNWidgets(2)); // balance and tips
+    expect(find.text(r'$0.00'), findsNWidgets(3)); // balance, tips, week total
     expect(find.text('No completed deliveries yet'), findsOneWidget);
   });
 
   testWidgets('shows balance, tips and each completed delivery', (
     tester,
   ) async {
+    // A tall phone so the chart and the whole history fit on screen.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final service = MockCourierService(latency: Duration.zero);
     final requests = await service.fetchAvailableRequests();
     // Grill ($3.00 + $1.00 tip) and Starbucks ($3.50 + $2.00 tip).
@@ -48,7 +52,8 @@ void main() {
     await _deliver(service, requests[1]);
     await _pumpTab(tester, service);
 
-    expect(find.text(r'$9.50'), findsOneWidget);
+    // Balance and the chart's week total (both deliveries were today).
+    expect(find.text(r'$9.50'), findsNWidgets(2));
     expect(find.text(r'$3.00'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.text(requests[0].dropoffLocation), findsOneWidget);
@@ -70,6 +75,9 @@ void main() {
   testWidgets('a delivery finished on My Deliveries shows up on Earnings', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final service = MockCourierService(latency: Duration.zero);
     final order = (await service.fetchAvailableRequests()).first;
     await tester.pumpWidget(CampusDeliveryApp(courierService: service));

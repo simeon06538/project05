@@ -8,6 +8,7 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
 import 'tab_header.dart';
+import 'weekly_earnings_chart.dart';
 
 /// K-09: demo earnings balance plus every completed delivery and its pay.
 class EarningsTab extends StatefulWidget {
@@ -71,6 +72,12 @@ class _EarningsTabState extends State<EarningsTab> {
               ErrorState(title: "Couldn't load your earnings", onRetry: _reload)
             else ...[
               _BalancePanel(earnings: earnings),
+              const SizedBox(height: 16),
+              GlassPanel(
+                child: WeeklyEarningsChart(
+                  completed: earnings.completedDeliveries,
+                ),
+              ),
               const SizedBox(height: 20),
               const Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 8),
