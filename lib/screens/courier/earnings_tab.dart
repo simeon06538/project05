@@ -9,6 +9,7 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
 import 'completed_delivery_screen.dart';
+import 'daily_goal_ring.dart';
 import 'earnings_stats.dart';
 import 'request_sort_bar.dart';
 import 'tab_header.dart';
@@ -22,6 +23,7 @@ class EarningsTab extends StatefulWidget {
     required this.courierId,
     this.isVisible = true,
     this.now,
+    this.dailyGoalCents,
   });
 
   final CourierService service;
@@ -33,6 +35,9 @@ class EarningsTab extends StatefulWidget {
 
   /// Overridable clock so tests get stable Today / This week ranges.
   final DateTime? now;
+
+  /// K-41: today's target in cents; no ring when null.
+  final int? dailyGoalCents;
 
   @override
   State<EarningsTab> createState() => _EarningsTabState();
@@ -177,6 +182,17 @@ class _EarningsTabState extends State<EarningsTab> {
               ErrorState(title: "Couldn't load your earnings", onRetry: _reload)
             else ...[
               _BalancePanel(earnings: earnings),
+              if (widget.dailyGoalCents case final goal?) ...[
+                const SizedBox(height: 16),
+                DailyGoalRing(
+                  goalCents: goal,
+                  earnedTodayCents: filterByRange(
+                    earnings.completedDeliveries,
+                    EarningsRange.today,
+                    widget.now ?? DateTime.now(),
+                  ).fold(0, (sum, o) => sum + o.totalPayCents),
+                ),
+              ],
               const SizedBox(height: 16),
               GlassPanel(
                 child: WeeklyEarningsChart(
