@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 import '../theme/app_theme.dart';
 import 'glass_panel.dart';
 
-/// K-14: spinner with a short label, for a screen's first load.
+/// K-14: loading indicator with a short label, for a screen's first load.
+/// K-20: uses a Lottie bouncing-dots animation instead of a spinner.
 class LoadingState extends StatelessWidget {
   const LoadingState({super.key, required this.label});
 
@@ -15,8 +17,15 @@ class LoadingState extends StatelessWidget {
       padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          const CircularProgressIndicator(color: AppColors.accent),
-          const SizedBox(height: 14),
+          Semantics(
+            label: 'Loading',
+            child: Lottie.asset(
+              'assets/lottie/loading.json',
+              width: 96,
+              height: 96,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
