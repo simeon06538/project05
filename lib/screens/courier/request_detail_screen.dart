@@ -9,6 +9,7 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
 import 'accept_dialog.dart';
 import 'accepted_dialog.dart';
+import 'detail_widgets.dart';
 import 'order_widgets.dart';
 import 'request_gone_dialog.dart';
 
@@ -111,7 +112,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                     child: Row(
                       children: [
-                        _BackButton(onTap: () => Navigator.of(context).pop()),
+                        GlassBackButton(
+                          onTap: () => Navigator.of(context).pop(),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -158,16 +161,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _SectionLabel('Your pay'),
+                        SectionLabel('Your pay'),
                         GlassPanel(
                           child: Column(
                             children: [
-                              _MoneyRow(
+                              MoneyRow(
                                 label: 'Delivery fee',
                                 cents: order.deliveryFeeCents,
                               ),
                               const SizedBox(height: 10),
-                              _MoneyRow(label: 'Tip', cents: order.tipCents),
+                              MoneyRow(label: 'Tip', cents: order.tipCents),
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 12),
                                 child: Divider(
@@ -175,7 +178,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                   color: Color(0x33FFFFFF),
                                 ),
                               ),
-                              _MoneyRow(
+                              MoneyRow(
                                 label: 'Total pay',
                                 cents: order.totalPayCents,
                                 bold: true,
@@ -190,7 +193,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           style: textTheme.bodySmall,
                         ),
                         const SizedBox(height: 16),
-                        _SectionLabel('Order'),
+                        SectionLabel('Order'),
                         GlassPanel(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,79 +263,6 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Back',
-      child: GestureDetector(
-        onTap: onTap,
-        child: const GlassPanel(
-          padding: EdgeInsets.all(10),
-          borderRadius: 14,
-          child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 22),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _MoneyRow extends StatelessWidget {
-  const _MoneyRow({
-    required this.label,
-    required this.cents,
-    this.bold = false,
-  });
-
-  final String label;
-  final int cents;
-  final bool bold;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = TextStyle(
-      color: bold ? AppColors.textPrimary : AppColors.textSecondary,
-      fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-      fontSize: bold ? 17 : 15,
-    );
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: style),
-        Text(
-          formatCents(cents),
-          style: style.copyWith(color: AppColors.textPrimary),
-        ),
-      ],
     );
   }
 }
