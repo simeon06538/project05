@@ -19,6 +19,69 @@ String walkingLabel(double miles) {
       : '${minutes ~/ 60} h $rest min walk';
 }
 
+/// K-23: how a request's age is flagged on its card.
+enum RequestAge { fresh, normal, waiting }
+
+/// Under 2 minutes old is "New"; over 15 minutes is "Waiting a while".
+RequestAge requestAge(Order order, {DateTime? now}) {
+  final age = (now ?? DateTime.now()).difference(order.createdAt);
+  if (age < const Duration(minutes: 2)) return RequestAge.fresh;
+  if (age > const Duration(minutes: 15)) return RequestAge.waiting;
+  return RequestAge.normal;
+}
+
+/// Small pill for [RequestAge.fresh] and [RequestAge.waiting]; nothing for
+/// a normal request.
+class AgeBadge extends StatelessWidget {
+  const AgeBadge({super.key, required this.age});
+
+  final RequestAge age;
+
+  static const _freshGreen = Color(0xFF4ADE80);
+  static const _waitingAmber = Color(0xFFFBBF24);
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color, icon) = switch (age) {
+      RequestAge.fresh => ('New', _freshGreen, Icons.fiber_new_rounded),
+      RequestAge.waiting => (
+        'Waiting a while',
+        _waitingAmber,
+        Icons.hourglass_bottom_rounded,
+      ),
+      RequestAge.normal => ('', Colors.transparent, Icons.circle),
+    };
+    if (age == RequestAge.normal) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(40),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withAlpha(150)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Short relative time, e.g. "Just now", "12 min ago", "3 h ago", "2 d ago".
 String timeAgo(DateTime time, {DateTime? now}) {
   final minutes = (now ?? DateTime.now()).difference(time).inMinutes;
