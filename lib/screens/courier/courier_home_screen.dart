@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_tab_bar.dart';
 import 'available_tab.dart';
+import 'courier_header.dart';
 import 'earnings_tab.dart';
 import 'my_deliveries_tab.dart';
 
@@ -14,12 +15,16 @@ class CourierHomeScreen extends StatefulWidget {
     super.key,
     required this.service,
     required this.courierId,
+    this.courierName = 'Courier',
   });
 
   final CourierService service;
 
   /// The signed-in courier. Comes from the login screen once C-02 exists.
   final String courierId;
+
+  /// Shown in the header; also from the login screen once C-02 exists.
+  final String courierName;
 
   @override
   State<CourierHomeScreen> createState() => _CourierHomeScreenState();
@@ -49,6 +54,8 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    CourierHeader(name: widget.courierName),
+                    const SizedBox(height: 16),
                     GlassTabBar(
                       labels: _tabLabels,
                       icons: _tabIcons,

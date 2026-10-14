@@ -9,6 +9,7 @@ import 'theme/app_theme.dart';
 
 /// Demo courier used until the login screen (C-02) exists.
 const demoCourierId = 'courier-demo';
+const demoCourierName = 'Alex Morgan';
 
 void main() {
   // TODO(K-12): swap in the real API service once the server is ready.
@@ -42,6 +43,7 @@ class CampusDeliveryApp extends StatelessWidget {
       home: CourierHomeScreen(
         service: courierService,
         courierId: demoCourierId,
+        courierName: demoCourierName,
       ),
     );
   }
