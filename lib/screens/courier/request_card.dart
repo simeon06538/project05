@@ -39,6 +39,10 @@ class RequestCard extends StatelessWidget {
                         icon: Icons.straighten,
                         text: '${order.distanceMiles.toStringAsFixed(1)} mi',
                       ),
+                      InfoChip(
+                        icon: Icons.directions_walk,
+                        text: walkingLabel(order.distanceMiles),
+                      ),
                       if (order.tipCents > 0)
                         InfoChip(
                           icon: Icons.volunteer_activism_outlined,

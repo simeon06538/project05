@@ -142,6 +142,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                         '${order.distanceMiles.toStringAsFixed(1)} mi',
                                   ),
                                   InfoChip(
+                                    icon: Icons.directions_walk,
+                                    text: walkingLabel(order.distanceMiles),
+                                  ),
+                                  InfoChip(
                                     icon: Icons.schedule,
                                     text: timeAgo(
                                       widget.order.createdAt,
