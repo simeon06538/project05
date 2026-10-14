@@ -66,11 +66,17 @@ class InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
+          // Flexible + ellipsis so a chip never overflows a narrow card
+          // when the phone uses large text.
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ),
         ],
