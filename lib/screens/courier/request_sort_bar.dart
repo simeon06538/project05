@@ -28,12 +28,12 @@ class RequestSortBar extends StatelessWidget {
       runSpacing: 0,
       children: [
         for (final option in RequestSort.values)
-          _Pill(
+          FilterPill(
             label: option.label,
             selected: option == sort,
             onTap: () => onSortChanged(option),
           ),
-        _Pill(
+        FilterPill(
           label: 'With tip',
           icon: Icons.volunteer_activism_outlined,
           selected: tipsOnly,
@@ -44,8 +44,11 @@ class RequestSortBar extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({
+/// Selectable pill with a 48px tap area, shared by the sort and
+/// restaurant rows.
+class FilterPill extends StatelessWidget {
+  const FilterPill({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,

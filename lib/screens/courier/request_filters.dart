@@ -21,6 +21,7 @@ List<Order> applyRequestFilters(
   RequestSort sort = RequestSort.oldest,
   bool tipsOnly = false,
   String query = '',
+  String? restaurant,
 }) {
   final q = query.trim().toLowerCase();
   bool matches(Order o) =>
@@ -29,7 +30,10 @@ List<Order> applyRequestFilters(
       o.dropoffLocation.toLowerCase().contains(q);
   final result = [
     for (final o in requests)
-      if ((!tipsOnly || o.tipCents > 0) && matches(o)) o,
+      if ((!tipsOnly || o.tipCents > 0) &&
+          matches(o) &&
+          (restaurant == null || restaurantOf(o) == restaurant))
+        o,
   ];
   int byAge(Order a, Order b) => a.createdAt.compareTo(b.createdAt);
   result.sort(switch (sort) {
@@ -44,4 +48,19 @@ List<Order> applyRequestFilters(
     },
   });
   return result;
+}
+
+/// K-36: the restaurant part of a pickup, e.g. "Grill" from
+/// "Student Union · Grill".
+String restaurantOf(Order order) => order.pickupLocation.split(' · ').last;
+
+/// K-36: how many open requests each restaurant has, A to Z.
+Map<String, int> restaurantCounts(List<Order> requests) {
+  final counts = <String, int>{};
+  for (final o in requests) {
+    counts.update(restaurantOf(o), (n) => n + 1, ifAbsent: () => 1);
+  }
+  return Map.fromEntries(
+    counts.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+  );
 }
