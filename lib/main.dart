@@ -6,6 +6,7 @@ import 'screens/courier/courier_home_screen.dart';
 import 'services/courier_service.dart';
 import 'services/mock_courier_service.dart';
 import 'theme/app_theme.dart';
+import 'theme/high_contrast.dart';
 
 /// Demo courier used until the login screen (C-02) exists.
 const demoCourierId = 'courier-demo';
@@ -30,22 +31,47 @@ void main() {
   runApp(CampusDeliveryApp(courierService: service));
 }
 
-class CampusDeliveryApp extends StatelessWidget {
-  const CampusDeliveryApp({super.key, required this.courierService});
+class CampusDeliveryApp extends StatefulWidget {
+  const CampusDeliveryApp({
+    super.key,
+    required this.courierService,
+    this.highContrast,
+  });
 
   final CourierService courierService;
 
+  /// K-42: lets tests start in high contrast; the app makes its own.
+  final ValueNotifier<bool>? highContrast;
+
+  @override
+  State<CampusDeliveryApp> createState() => _CampusDeliveryAppState();
+}
+
+class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
+  late final _highContrast = widget.highContrast ?? ValueNotifier(false);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Campus Delivery',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      // TODO(C-02): replace with the role-selection screen once it exists.
-      home: CourierHomeScreen(
-        service: courierService,
-        courierId: demoCourierId,
-        courierName: demoCourierName,
+    return HighContrastScope(
+      notifier: _highContrast,
+      child: MaterialApp(
+        title: 'Campus Delivery',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark,
+        // K-42: high contrast also turns on bold text everywhere.
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            boldText:
+                HighContrastScope.of(context) || MediaQuery.boldTextOf(context),
+          ),
+          child: child!,
+        ),
+        // TODO(C-02): replace with the role-selection screen once it exists.
+        home: CourierHomeScreen(
+          service: widget.courierService,
+          courierId: demoCourierId,
+          courierName: demoCourierName,
+        ),
       ),
     );
   }

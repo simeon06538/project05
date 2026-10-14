@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import '../../theme/high_contrast.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
@@ -156,6 +157,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ],
                           ),
                         ),
+                        if (HighContrastScope.controllerOf(context)
+                            case final contrast?) ...[
+                          const SizedBox(height: 20),
+                          const SectionLabel('Display'),
+                          GlassPanel(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: SwitchListTile(
+                              value: HighContrastScope.of(context),
+                              onChanged: (on) => contrast.value = on,
+                              activeThumbColor: AppColors.accentSoft,
+                              title: const Text(
+                                'High contrast',
+                                style: TextStyle(color: AppColors.textPrimary),
+                              ),
+                              subtitle: Text(
+                                'Solid panels and bold text',
+                                style: textTheme.bodySmall,
+                              ),
+                            ),
+                          ),
+                        ],
                         if (widget.onDailyGoalChanged != null) ...[
                           const SizedBox(height: 20),
                           const SectionLabel('Daily goal'),
