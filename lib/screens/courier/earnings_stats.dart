@@ -140,3 +140,34 @@ class _StatTile extends StatelessWidget {
     );
   }
 }
+
+/// K-39: which deliveries the Earnings stats and history cover.
+enum EarningsRange {
+  today('Today'),
+  week('This week'),
+  all('All time');
+
+  const EarningsRange(this.label);
+
+  final String label;
+}
+
+/// Deliveries finished in [range]: today, the last 7 days (same window as
+/// the weekly chart) or everything.
+List<Order> filterByRange(
+  List<Order> completed,
+  EarningsRange range,
+  DateTime now,
+) {
+  if (range == EarningsRange.all) return completed;
+  final today = DateUtils.dateOnly(now);
+  return [
+    for (final o in completed)
+      if (today
+              .difference(DateUtils.dateOnly(o.deliveredAt ?? o.updatedAt))
+              .inDays
+          case final daysAgo
+          when daysAgo >= 0 && daysAgo < (range == EarningsRange.today ? 1 : 7))
+        o,
+  ];
+}
