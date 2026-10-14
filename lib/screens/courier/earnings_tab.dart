@@ -9,6 +9,7 @@ import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
 import 'completed_delivery_screen.dart';
 import 'earnings_stats.dart';
+import 'request_sort_bar.dart';
 import 'tab_header.dart';
 import 'weekly_earnings_chart.dart';
 
@@ -19,6 +20,7 @@ class EarningsTab extends StatefulWidget {
     required this.service,
     required this.courierId,
     this.isVisible = true,
+    this.now,
   });
 
   final CourierService service;
@@ -28,12 +30,16 @@ class EarningsTab extends StatefulWidget {
   /// pay appears straight away.
   final bool isVisible;
 
+  /// Overridable clock so tests get stable Today / This week ranges.
+  final DateTime? now;
+
   @override
   State<EarningsTab> createState() => _EarningsTabState();
 }
 
 class _EarningsTabState extends State<EarningsTab> {
   late Future<CourierEarnings> _earnings;
+  EarningsRange _range = EarningsRange.all;
 
   @override
   void initState() {
@@ -53,6 +59,72 @@ class _EarningsTabState extends State<EarningsTab> {
     setState(() {
       _earnings = widget.service.fetchEarnings(widget.courierId);
     });
+  }
+
+  /// K-39: Today / This week / All time chips, then the stats and history
+  /// for that range.
+  List<Widget> _rangeSection(CourierEarnings earnings) {
+    final all = earnings.completedDeliveries;
+    final inRange = filterByRange(all, _range, widget.now ?? DateTime.now());
+    return [
+      Wrap(
+        spacing: 8,
+        children: [
+          for (final range in EarningsRange.values)
+            FilterPill(
+              label: range.label,
+              selected: range == _range,
+              onTap: () => setState(() => _range = range),
+            ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      EarningsStatsRow(stats: EarningsStats.from(inRange)),
+      const SizedBox(height: 20),
+      Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 8),
+        child: Text(
+          'Completed deliveries · ${inRange.length}',
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      if (all.isEmpty)
+        const GlassPanel(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+          child: EmptyState(
+            icon: Icons.savings_outlined,
+            title: 'No completed deliveries yet',
+            subtitle: 'Pay from each delivery is added here.',
+          ),
+        )
+      else if (inRange.isEmpty)
+        GlassPanel(
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _range == EarningsRange.today
+                      ? 'No deliveries today yet.'
+                      : 'No deliveries in the last 7 days.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _range = EarningsRange.all),
+                child: const Text('See all time'),
+              ),
+            ],
+          ),
+        )
+      else
+        for (final order in inRange) ...[
+          _HistoryItem(order: order),
+          const SizedBox(height: 10),
+        ],
+    ];
   }
 
   @override
@@ -81,34 +153,7 @@ class _EarningsTabState extends State<EarningsTab> {
                 ),
               ),
               const SizedBox(height: 12),
-              EarningsStatsRow(
-                stats: EarningsStats.from(earnings.completedDeliveries),
-              ),
-              const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 8),
-                child: Text(
-                  'Completed deliveries',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (earnings.completedDeliveries.isEmpty)
-                const GlassPanel(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 28),
-                  child: EmptyState(
-                    icon: Icons.savings_outlined,
-                    title: 'No completed deliveries yet',
-                    subtitle: 'Pay from each delivery is added here.',
-                  ),
-                )
-              else
-                for (final order in earnings.completedDeliveries) ...[
-                  _HistoryItem(order: order),
-                  const SizedBox(height: 10),
-                ],
+              ..._rangeSection(earnings),
             ],
           ],
         );
