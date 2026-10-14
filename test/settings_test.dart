@@ -116,6 +116,20 @@ void main() {
     await service.acceptRequest(order.id, demoCourierId);
 
     await _openSettings(tester);
+    // Below the Daily goal section (K-41).
+    await tester.scrollUntilVisible(
+      find.text('Reset demo data'),
+      200,
+      // Settings' own list, not the home screen underneath it.
+      scrollable: find
+          .descendant(
+            of: find.byType(SettingsScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.ensureVisible(find.text('Reset demo data'));
+    await tester.pump();
     await tester.tap(find.text('Reset demo data'));
     await _settle(tester);
     await tester.tap(find.text('Reset'));
