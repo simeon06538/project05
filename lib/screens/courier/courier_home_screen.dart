@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/courier_prefs.dart';
 import '../../services/courier_service.dart';
 import '../../services/haptics.dart';
 import '../../services/mock_courier_service.dart';
@@ -19,6 +20,7 @@ class CourierHomeScreen extends StatefulWidget {
     required this.service,
     required this.courierId,
     this.courierName = 'Courier',
+    this.prefs,
   });
 
   final CourierService service;
@@ -28,6 +30,9 @@ class CourierHomeScreen extends StatefulWidget {
 
   /// Shown in the header; also from the login screen once C-02 exists.
   final String courierName;
+
+  /// K-43: saved settings; null in tests that don't need them.
+  final CourierPrefs? prefs;
 
   @override
   State<CourierHomeScreen> createState() => _CourierHomeScreenState();
@@ -42,14 +47,19 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
   ];
 
   int _selectedTab = 0;
-  bool _online = true;
+  late bool _online = widget.prefs?.online ?? true;
   int _openCount = 0;
 
   /// K-31: editable in Settings (from the login screen once C-02 exists).
-  late String _name = widget.courierName;
+  late String _name = widget.prefs?.name ?? widget.courierName;
 
   /// K-41: daily earnings goal, $20 to start.
-  int _dailyGoalCents = 2000;
+  late int _dailyGoalCents = widget.prefs?.dailyGoalCents ?? 2000;
+
+  void _setOnline(bool online) {
+    setState(() => _online = online);
+    widget.prefs?.setOnline(online);
+  }
 
   /// Bumped on "Reset demo data" so every tab rebuilds and reloads.
   int _resetGeneration = 0;
@@ -60,10 +70,15 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
       MaterialPageRoute<void>(
         builder: (_) => SettingsScreen(
           name: _name,
-          onNameChanged: (name) => setState(() => _name = name),
+          onNameChanged: (name) {
+            setState(() => _name = name);
+            widget.prefs?.setName(name);
+          },
           dailyGoalCents: _dailyGoalCents,
-          onDailyGoalChanged: (cents) =>
-              setState(() => _dailyGoalCents = cents),
+          onDailyGoalChanged: (cents) => setState(() {
+            _dailyGoalCents = cents;
+            widget.prefs?.setDailyGoalCents(cents);
+          }),
           onResetDemo: service is MockCourierService
               ? () {
                   service.resetDemo(withHistoryFor: widget.courierId);
@@ -99,7 +114,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                       online: _online,
                       onOnlineChanged: (on) {
                         Haptics.toggle();
-                        setState(() => _online = on);
+                        _setOnline(on);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -130,7 +145,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                                   setState(() => _openCount = count);
                                 }
                               },
-                              onGoOnline: () => setState(() => _online = true),
+                              onGoOnline: () => _setOnline(true),
                             ),
                             MyDeliveriesTab(
                               service: widget.service,
