@@ -12,7 +12,9 @@ class AppColors {
   static const accentStrong = Color(0xFF6D4ED8);
   static const textPrimary = Colors.white;
   static const textSecondary = Color(0xFFCFC4EE);
-  static const textMuted = Color(0xFF8E83AE);
+  // Light enough for small text to keep 4.5:1 contrast even over the
+  // purple glows in the background (K-30/K-31).
+  static const textMuted = Color(0xFFA99FC9);
 }
 
 class AppTheme {

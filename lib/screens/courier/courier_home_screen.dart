@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../services/courier_service.dart';
 import '../../services/haptics.dart';
+import '../../services/mock_courier_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_tab_bar.dart';
 import 'available_tab.dart';
 import 'courier_header.dart';
+import 'settings_screen.dart';
 import 'earnings_tab.dart';
 import 'my_deliveries_tab.dart';
 
@@ -43,6 +45,34 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
   bool _online = true;
   int _openCount = 0;
 
+  /// K-31: editable in Settings (from the login screen once C-02 exists).
+  late String _name = widget.courierName;
+
+  /// Bumped on "Reset demo data" so every tab rebuilds and reloads.
+  int _resetGeneration = 0;
+
+  void _openSettings() {
+    final service = widget.service;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsScreen(
+          name: _name,
+          onNameChanged: (name) => setState(() => _name = name),
+          onResetDemo: service is MockCourierService
+              ? () {
+                  service.resetDemo(withHistoryFor: widget.courierId);
+                  setState(() {
+                    _resetGeneration++;
+                    _openCount = 0;
+                    _selectedTab = 0;
+                  });
+                }
+              : null,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +88,8 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     CourierHeader(
-                      name: widget.courierName,
+                      name: _name,
+                      onOpenSettings: _openSettings,
                       online: _online,
                       onOnlineChanged: (on) {
                         Haptics.toggle();
@@ -108,7 +139,11 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                           ].indexed)
                             // Hidden tabs stay alive but pause their
                             // animations (e.g. looping empty states).
-                            TickerMode(enabled: i == _selectedTab, child: tab),
+                            TickerMode(
+                              key: ValueKey((_resetGeneration, i)),
+                              enabled: i == _selectedTab,
+                              child: tab,
+                            ),
                         ],
                       ),
                     ),

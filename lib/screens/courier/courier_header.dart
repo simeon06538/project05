@@ -25,6 +25,7 @@ class CourierHeader extends StatelessWidget {
     this.now,
     this.online = true,
     this.onOnlineChanged,
+    this.onOpenSettings,
   });
 
   final String name;
@@ -33,6 +34,9 @@ class CourierHeader extends StatelessWidget {
   /// calls [onOnlineChanged] with the opposite value.
   final bool online;
   final ValueChanged<bool>? onOnlineChanged;
+
+  /// K-31: opens the settings screen; no button when null.
+  final VoidCallback? onOpenSettings;
 
   /// Overridable clock so tests get a stable greeting.
   final DateTime? now;
@@ -84,6 +88,15 @@ class CourierHeader extends StatelessWidget {
           ),
         ),
         _OnlinePill(online: online, onChanged: onOnlineChanged),
+        if (onOpenSettings != null)
+          IconButton(
+            onPressed: onOpenSettings,
+            tooltip: 'Settings',
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.textSecondary,
+            ),
+          ),
       ],
     );
   }
