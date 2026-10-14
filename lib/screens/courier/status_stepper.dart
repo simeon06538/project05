@@ -61,6 +61,8 @@ class _Step extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: '$label${isCurrent ? ', current step' : ''}',
+      // The visible text is already in the label, so don't read it twice.
+      excludeSemantics: true,
       child: Column(
         children: [
           AnimatedContainer(
