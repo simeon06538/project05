@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:campus_delivery/screens/courier/available_tab.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
+import 'package:campus_delivery/widgets/status_views.dart';
 
 Future<void> _pumpTab(
   WidgetTester tester,
@@ -84,7 +85,7 @@ void main() {
     service.addDemoRequest();
     await tester.tap(find.byTooltip('Refresh'));
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(LoadingState), findsNothing);
     expect(find.text('5 open requests'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 400));

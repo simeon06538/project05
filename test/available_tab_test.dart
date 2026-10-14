@@ -5,6 +5,7 @@ import 'package:campus_delivery/models/order.dart';
 import 'package:campus_delivery/screens/courier/available_tab.dart';
 import 'package:campus_delivery/services/courier_service.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
+import 'package:campus_delivery/widgets/status_views.dart';
 
 /// Returns no open requests, to check the empty state.
 class _EmptyService extends MockCourierService {
@@ -59,8 +60,8 @@ void main() {
       MockCourierService(latency: const Duration(milliseconds: 400)),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(LoadingState), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(LoadingState), findsNothing);
   });
 }
