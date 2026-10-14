@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 
+import '../theme/high_contrast.dart';
+
 /// Frosted-glass card used across the app. Sizes itself to its child
 /// unless [width] or [height] is given.
 class GlassPanel extends StatelessWidget {
@@ -21,6 +23,22 @@ class GlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // K-42: solid panel with a bright edge instead of see-through glass.
+    if (HighContrastScope.of(context)) {
+      return Container(
+        width: width,
+        height: height,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1238),
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: Border.all(color: const Color(0xCCFFFFFF), width: 1.5),
+        ),
+        // A Material layer so tiles and buttons inside still show their
+        // ink ripples on top of the solid color.
+        child: Material(type: MaterialType.transparency, child: child),
+      );
+    }
     return GlassmorphicContainer(
       width: width,
       height: height,
