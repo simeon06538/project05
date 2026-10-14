@@ -9,6 +9,7 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import '../../widgets/primary_button.dart';
 import 'delivered_dialog.dart';
+import 'delivery_timeline.dart';
 import 'order_widgets.dart';
 import 'status_stepper.dart';
 import 'tab_header.dart';
@@ -245,6 +246,18 @@ class _ActiveDelivery extends StatelessWidget {
               : 'Mark as picked up',
           loading: updating,
           onPressed: onAdvance,
+        ),
+        // K-24: history below the main action, so the button stays on screen.
+        const SizedBox(height: 20),
+        GlassPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Timeline', style: textTheme.bodySmall),
+              const SizedBox(height: 10),
+              DeliveryTimeline(order: order),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
       ],

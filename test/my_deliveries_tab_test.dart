@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:campus_delivery/main.dart';
 import 'package:campus_delivery/models/order.dart';
 import 'package:campus_delivery/screens/courier/my_deliveries_tab.dart';
+import 'package:campus_delivery/screens/courier/status_stepper.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
 
 const _courier = 'courier-a';
@@ -34,9 +35,14 @@ void main() {
     await service.acceptRequest(order.id, _courier);
     await _pumpTab(tester, service);
 
-    expect(find.text('Accepted'), findsOneWidget);
-    expect(find.text('Picked up'), findsOneWidget);
-    expect(find.text('Delivered'), findsOneWidget);
+    // The progress bar (the timeline below repeats these names).
+    Finder inStepper(String text) => find.descendant(
+      of: find.byType(StatusStepper),
+      matching: find.text(text),
+    );
+    expect(inStepper('Accepted'), findsOneWidget);
+    expect(inStepper('Picked up'), findsOneWidget);
+    expect(inStepper('Delivered'), findsOneWidget);
     expect(find.text('Pick up at ${order.pickupLocation}'), findsOneWidget);
     expect(
       find.text('Show order ${order.pawPointsOrderNumber} at the counter.'),
