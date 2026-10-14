@@ -169,6 +169,70 @@ class MockCourierService implements CourierService {
     }
   }
 
+  /// K-25 demo data: a week of past deliveries for [courierId], so the
+  /// earnings chart has something to show. Adds their pay to the balance.
+  void seedHistory(String courierId, {DateTime? now}) {
+    const history = [
+      // (days ago, pickup, drop-off, miles, fee, tip)
+      (1, 'Student Union · Starbucks', 'Music Building', 0.5, 300, 200),
+      (1, 'Student Union · Grill', 'Rec Center', 0.9, 400, 100),
+      (2, 'Student Union · Subway', 'Business Building', 0.6, 350, 0),
+      (
+        3,
+        'Student Union · Panda Express',
+        'North Residence Hall',
+        1.1,
+        450,
+        300,
+      ),
+      (
+        3,
+        'Student Union · Taco Bell',
+        'Library · Main entrance',
+        0.4,
+        300,
+        150,
+      ),
+      (3, 'Student Union · Grill', 'Engineering Hall', 0.7, 350, 100),
+      (5, 'Student Union · Chick-fil-A', 'Stadium · Gate 4', 1.4, 500, 250),
+      (
+        6,
+        'Student Union · Starbucks',
+        'Science Building · Room 120',
+        0.3,
+        300,
+        0,
+      ),
+    ];
+    final today = now ?? DateTime.now();
+    for (final (daysAgo, pickup, dropoff, miles, fee, tip) in history) {
+      // Lunchtime on that calendar day, so it always lands on the right
+      // day even when "now" is just after midnight.
+      final delivered = DateTime(
+        today.year,
+        today.month,
+        today.day - daysAgo,
+        12,
+        30,
+      );
+      final created = delivered.subtract(const Duration(minutes: 25));
+      final order = _add(pickup, dropoff, miles, fee, tip, created);
+      _orders[order.id] = order.copyWith(
+        courierId: courierId,
+        status: OrderStatus.delivered,
+        updatedAt: delivered,
+        acceptedAt: created.add(const Duration(minutes: 3)),
+        pickedUpAt: created.add(const Duration(minutes: 12)),
+        deliveredAt: delivered,
+      );
+      _balances.update(
+        courierId,
+        (cents) => cents + order.totalPayCents,
+        ifAbsent: () => order.totalPayCents,
+      );
+    }
+  }
+
   /// Simulates a different courier accepting [orderId], so the "someone
   /// else got it first" path (K-13) can be tested and demoed. Does nothing
   /// if the order is no longer open.
