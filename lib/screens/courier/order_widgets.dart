@@ -3,6 +3,22 @@ import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import '../../theme/app_theme.dart';
 
+/// K-22: rough walking time for a delivery, at about 3 mph (20 min per
+/// mile), rounded up and never less than a minute. The tiny offset stops
+/// float noise (e.g. 22.000000000000004) from adding a whole minute.
+int walkingMinutes(double miles) =>
+    (miles * 20 - 1e-9).ceil().clamp(1, 1000).toInt();
+
+/// "8 min walk", or "1 h 5 min walk" for long trips.
+String walkingLabel(double miles) {
+  final minutes = walkingMinutes(miles);
+  if (minutes < 60) return '$minutes min walk';
+  final rest = minutes % 60;
+  return rest == 0
+      ? '${minutes ~/ 60} h walk'
+      : '${minutes ~/ 60} h $rest min walk';
+}
+
 /// Short relative time, e.g. "Just now", "12 min ago", "3 h ago", "2 d ago".
 String timeAgo(DateTime time, {DateTime? now}) {
   final minutes = (now ?? DateTime.now()).difference(time).inMinutes;
