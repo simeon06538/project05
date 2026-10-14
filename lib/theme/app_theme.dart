@@ -6,6 +6,10 @@ class AppColors {
   static const backgroundBottom = Color(0xFF120A24);
   static const accent = Color(0xFF8B6CF0);
   static const accentSoft = Color(0xFFB8A4FF);
+
+  /// K-30: filled buttons with white text use this deeper purple, which
+  /// passes WCAG AA contrast (about 5.6:1); [accent] alone is only 3.8:1.
+  static const accentStrong = Color(0xFF6D4ED8);
   static const textPrimary = Colors.white;
   static const textSecondary = Color(0xFFCFC4EE);
   static const textMuted = Color(0xFF8E83AE);
@@ -39,7 +43,7 @@ class AppTheme {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.accent,
+        backgroundColor: AppColors.accentStrong,
         foregroundColor: AppColors.textPrimary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),

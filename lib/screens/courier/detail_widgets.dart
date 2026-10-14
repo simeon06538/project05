@@ -19,7 +19,8 @@ class GlassBackButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: const GlassPanel(
-          padding: EdgeInsets.all(10),
+          // 13 + 22 + 13 = 48px, the minimum tap target (K-30).
+          padding: EdgeInsets.all(13),
           borderRadius: 14,
           child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 22),
         ),
@@ -70,7 +71,7 @@ class MoneyRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
+        Expanded(child: Text(label, style: style)),
         Text(
           formatCents(cents),
           style: style.copyWith(color: AppColors.textPrimary),

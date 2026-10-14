@@ -51,7 +51,8 @@ class CourierHeader extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.accentSoft, AppColors.accent],
+              // K-30: deep enough for white initials to pass WCAG contrast.
+              colors: [Color(0xFF7B5CE6), Color(0xFF5A3DC0)],
             ),
             border: Border.all(color: const Color(0x55FFFFFF)),
           ),
