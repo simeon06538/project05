@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/pickup_checklist.dart';
+
 import 'package:campus_delivery/models/order.dart';
 import 'package:campus_delivery/screens/courier/my_deliveries_tab.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
@@ -29,6 +31,10 @@ Future<void> _tapButton(WidgetTester tester, Finder finder) async {
   // The previous step's floating snackbar can sit over the button.
   ScaffoldMessenger.of(tester.element(find.byType(Scaffold))).clearSnackBars();
   await tester.pumpAndSettle();
+  // K-33: pickup needs both checklist boxes ticked first.
+  if (find.byType(Checkbox).evaluate().isNotEmpty) {
+    await completePickupChecklist(tester);
+  }
   await tester.scrollUntilVisible(finder, 200);
   // Fully on screen, so the tap lands on the button and not past the edge.
   await tester.ensureVisible(finder);

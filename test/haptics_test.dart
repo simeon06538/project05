@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/pickup_checklist.dart';
+
 import 'package:campus_delivery/main.dart';
 import 'package:campus_delivery/screens/courier/my_deliveries_tab.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
@@ -63,6 +65,8 @@ void main() {
     );
     await tester.pump();
 
+    await completePickupChecklist(tester);
+
     await tester.scrollUntilVisible(find.text('Mark as picked up'), 200);
     await tester.ensureVisible(find.text('Mark as picked up'));
     await tester.pump();
@@ -98,6 +102,7 @@ void main() {
     await tester.pump();
 
     service.failNextCalls();
+    await completePickupChecklist(tester);
     await tester.scrollUntilVisible(find.text('Mark as picked up'), 200);
     await tester.ensureVisible(find.text('Mark as picked up'));
     await tester.pump();
