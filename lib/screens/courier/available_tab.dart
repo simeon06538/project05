@@ -11,6 +11,7 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/status_views.dart';
 import 'active_delivery_banner.dart';
+import 'distance_filter.dart';
 import 'new_requests_banner.dart';
 import 'request_card.dart';
 import 'request_detail_screen.dart';
@@ -79,6 +80,9 @@ class _AvailableTabState extends State<AvailableTab> {
 
   /// K-36: show only this restaurant's requests; null means all.
   String? _restaurant;
+
+  /// K-37: furthest distance to show; null means any.
+  double? _maxMiles;
   String get _query => _search.text.trim();
 
   void _clearFilters() {
@@ -86,6 +90,7 @@ class _AvailableTabState extends State<AvailableTab> {
     setState(() {
       _tipsOnly = false;
       _restaurant = null;
+      _maxMiles = null;
     });
   }
 
@@ -213,6 +218,7 @@ class _AvailableTabState extends State<AvailableTab> {
       tipsOnly: _tipsOnly,
       query: _query,
       restaurant: _restaurant,
+      maxMiles: _maxMiles,
     );
     final noun = total == 1 ? 'request' : 'requests';
     return [
@@ -256,6 +262,10 @@ class _AvailableTabState extends State<AvailableTab> {
         selected: _restaurant,
         onSelected: (name) => setState(() => _restaurant = name),
       ),
+      DistanceFilter(
+        maxMiles: _maxMiles,
+        onChanged: (miles) => setState(() => _maxMiles = miles),
+      ),
       const SizedBox(height: 14),
       Row(
         children: [
@@ -284,6 +294,8 @@ class _AvailableTabState extends State<AvailableTab> {
                 child: Text(
                   _query.isNotEmpty
                       ? 'No requests match "$_query".'
+                      : _maxMiles != null && !_tipsOnly && _restaurant == null
+                      ? 'No requests within ${formatMiles(_maxMiles!)} mi right now.'
                       : _restaurant != null
                       ? 'No requests from $_restaurant right now.'
                       : 'No requests with a tip right now.',
