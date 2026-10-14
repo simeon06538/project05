@@ -11,6 +11,7 @@ import '../../widgets/primary_button.dart';
 import 'delivered_dialog.dart';
 import 'delivery_timeline.dart';
 import 'order_widgets.dart';
+import 'release_dialog.dart';
 import 'status_stepper.dart';
 import 'tab_header.dart';
 
@@ -66,6 +67,30 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
       if (mounted) setState(() => _loadFailed = true);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// K-28: hands an accepted delivery back before pickup.
+  Future<void> _release(Order order) async {
+    if (!await confirmRelease(context, order) || !mounted) return;
+    setState(() => _updating = true);
+    try {
+      await widget.service.releaseDelivery(order.id, widget.courierId);
+      if (!mounted) return;
+      Haptics.step();
+      setState(() => _order = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Delivery released. It is back on the open list.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Haptics.problem();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _updating = false);
     }
   }
 
@@ -135,6 +160,9 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
             order: order,
             updating: _updating,
             onAdvance: () => _advance(order),
+            onRelease: order.status == OrderStatus.accepted
+                ? () => _release(order)
+                : null,
           ),
       ],
     );
@@ -146,11 +174,15 @@ class _ActiveDelivery extends StatelessWidget {
     required this.order,
     required this.updating,
     required this.onAdvance,
+    this.onRelease,
   });
 
   final Order order;
   final bool updating;
   final VoidCallback onAdvance;
+
+  /// Only offered before pickup.
+  final VoidCallback? onRelease;
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +279,15 @@ class _ActiveDelivery extends StatelessWidget {
           loading: updating,
           onPressed: onAdvance,
         ),
+        if (onRelease != null)
+          TextButton.icon(
+            onPressed: updating ? null : onRelease,
+            icon: const Icon(Icons.undo_rounded, size: 18),
+            label: const Text("Can't make it? Release delivery"),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+            ),
+          ),
         // K-24: history below the main action, so the button stays on screen.
         const SizedBox(height: 20),
         GlassPanel(
