@@ -22,6 +22,7 @@ List<Order> applyRequestFilters(
   bool tipsOnly = false,
   String query = '',
   String? restaurant,
+  double? maxMiles,
 }) {
   final q = query.trim().toLowerCase();
   bool matches(Order o) =>
@@ -32,7 +33,9 @@ List<Order> applyRequestFilters(
     for (final o in requests)
       if ((!tipsOnly || o.tipCents > 0) &&
           matches(o) &&
-          (restaurant == null || restaurantOf(o) == restaurant))
+          (restaurant == null || restaurantOf(o) == restaurant) &&
+          // K-37: tiny tolerance so 0.5 mi counts as "within 0.5 mi".
+          (maxMiles == null || o.distanceMiles <= maxMiles + 1e-9))
         o,
   ];
   int byAge(Order a, Order b) => a.createdAt.compareTo(b.createdAt);
