@@ -32,6 +32,9 @@ class Order {
     required this.pawPointsOrderNumber,
     required this.createdAt,
     required this.updatedAt,
+    this.acceptedAt,
+    this.pickedUpAt,
+    this.deliveredAt,
   });
 
   final String id;
@@ -47,6 +50,20 @@ class Order {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// K-24: when each delivery step happened; null until it does.
+  final DateTime? acceptedAt;
+  final DateTime? pickedUpAt;
+  final DateTime? deliveredAt;
+
+  /// When the order reached [step], or null if it hasn't yet.
+  DateTime? timeOf(OrderStatus step) => switch (step) {
+    OrderStatus.requested => createdAt,
+    OrderStatus.accepted => acceptedAt,
+    OrderStatus.pickedUp => pickedUpAt,
+    OrderStatus.delivered => deliveredAt,
+    OrderStatus.cancelled => null,
+  };
+
   /// What the courier earns for this delivery.
   int get totalPayCents => deliveryFeeCents + tipCents;
 
@@ -54,6 +71,9 @@ class Order {
     String? courierId,
     OrderStatus? status,
     DateTime? updatedAt,
+    DateTime? acceptedAt,
+    DateTime? pickedUpAt,
+    DateTime? deliveredAt,
   }) {
     return Order(
       id: id,
@@ -68,6 +88,9 @@ class Order {
       pawPointsOrderNumber: pawPointsOrderNumber,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      acceptedAt: acceptedAt ?? this.acceptedAt,
+      pickedUpAt: pickedUpAt ?? this.pickedUpAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
     );
   }
 }

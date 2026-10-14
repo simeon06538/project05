@@ -61,10 +61,12 @@ class MockCourierService implements CourierService {
     if (_activeFor(courierId) != null) {
       throw const ActiveDeliveryException();
     }
+    final now = DateTime.now();
     return _orders[orderId] = order.copyWith(
       courierId: courierId,
       status: OrderStatus.accepted,
-      updatedAt: DateTime.now(),
+      updatedAt: now,
+      acceptedAt: now,
     );
   }
 
@@ -75,9 +77,12 @@ class MockCourierService implements CourierService {
     if (order.status.next != newStatus) {
       throw InvalidStatusChangeException(order.status, newStatus);
     }
+    final now = DateTime.now();
     final updated = _orders[orderId] = order.copyWith(
       status: newStatus,
-      updatedAt: DateTime.now(),
+      updatedAt: now,
+      pickedUpAt: newStatus == OrderStatus.pickedUp ? now : null,
+      deliveredAt: newStatus == OrderStatus.delivered ? now : null,
     );
     if (newStatus == OrderStatus.delivered) {
       _balances.update(
