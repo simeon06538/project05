@@ -30,6 +30,9 @@ Future<void> _tapButton(WidgetTester tester, Finder finder) async {
   ScaffoldMessenger.of(tester.element(find.byType(Scaffold))).clearSnackBars();
   await tester.pumpAndSettle();
   await tester.scrollUntilVisible(finder, 200);
+  // Fully on screen, so the tap lands on the button and not past the edge.
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }

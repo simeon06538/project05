@@ -49,6 +49,16 @@ void main() {
     expect(_top(tester, grill), lessThan(_top(tester, starbucks)));
   });
 
+  testWidgets('chips sit side by side, not one per line', (tester) async {
+    await _pumpTab(tester, MockCourierService(latency: Duration.zero));
+
+    expect(_top(tester, 'Oldest first'), _top(tester, 'Highest pay'));
+    expect(
+      tester.getSize(find.text('Oldest first')).width,
+      lessThan(tester.getSize(find.byType(ListView)).width / 2),
+    );
+  });
+
   testWidgets('Highest pay puts the best-paying request first', (tester) async {
     await _pumpTab(tester, MockCourierService(latency: Duration.zero));
 

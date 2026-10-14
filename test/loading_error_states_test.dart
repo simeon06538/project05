@@ -79,6 +79,8 @@ void main() {
 
     service.failNextCalls();
     await tester.scrollUntilVisible(find.text('Mark as picked up'), 200);
+    await tester.ensureVisible(find.text('Mark as picked up'));
+    await tester.pump();
     await tester.tap(find.text('Mark as picked up'));
     await tester.pump();
     await tester.pump();

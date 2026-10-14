@@ -45,7 +45,7 @@ void main() {
     expect(theme.inputDecorationTheme.filled, isTrue);
     expect(
       theme.filledButtonTheme.style?.backgroundColor?.resolve({}),
-      AppColors.accent,
+      AppColors.accentStrong,
     );
   });
 }

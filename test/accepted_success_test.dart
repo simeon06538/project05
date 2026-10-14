@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lottie/lottie.dart';
 
@@ -23,6 +24,15 @@ Future<Order> _acceptFirst(
   final order = (await service.fetchAvailableRequests()).first;
   await tester.pumpWidget(CampusDeliveryApp(courierService: service));
   await tester.pump();
+  // The header, chips and badge push the first card below the small test
+  // screen's fold.
+  await tester.scrollUntilVisible(
+    find.text(order.pickupLocation),
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(find.text(order.pickupLocation));
+  await _settle(tester);
   await tester.tap(find.text(order.pickupLocation));
   await _settle(tester);
   await tester.tap(find.textContaining('Accept delivery'));
