@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/courier_service.dart';
+import '../../services/haptics.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_tab_bar.dart';
@@ -58,7 +59,10 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                     CourierHeader(
                       name: widget.courierName,
                       online: _online,
-                      onOnlineChanged: (on) => setState(() => _online = on),
+                      onOnlineChanged: (on) {
+                        Haptics.toggle();
+                        setState(() => _online = on);
+                      },
                     ),
                     const SizedBox(height: 16),
                     GlassTabBar(

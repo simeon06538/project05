@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import '../../services/courier_service.dart';
+import '../../services/haptics.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
@@ -57,6 +58,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       if (!mounted) return;
       // Stop the button spinner so it isn't left running behind the dialog.
       setState(() => _accepting = false);
+      Haptics.success();
       await showAcceptedSuccess(context, accepted);
       if (mounted) Navigator.of(context).pop(accepted);
     } on ActiveDeliveryException catch (e) {
@@ -76,12 +78,14 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   Future<void> _requestGone({required bool taken}) async {
     if (!mounted) return;
     setState(() => _accepting = false);
+    Haptics.problem();
     await showRequestGone(context, taken: taken);
     if (mounted) Navigator.of(context).pop();
   }
 
   void _showError(Object error, {bool lock = false}) {
     if (!mounted) return;
+    Haptics.problem();
     setState(() {
       _accepting = false;
       _locked = _locked || lock;

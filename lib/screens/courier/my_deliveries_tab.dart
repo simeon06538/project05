@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import '../../services/courier_service.dart';
+import '../../services/haptics.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
@@ -83,6 +84,7 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
       final updated = await widget.service.updateStatus(order.id, next);
       if (!mounted) return;
       final delivered = updated.status == OrderStatus.delivered;
+      delivered ? Haptics.delivered() : Haptics.step();
       setState(() => _order = delivered ? null : updated);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -96,6 +98,7 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
       );
     } catch (e) {
       if (!mounted) return;
+      Haptics.problem();
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
