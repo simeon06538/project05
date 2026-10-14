@@ -106,15 +106,20 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
   Future<void> _advance(Order order) async {
     final next = order.status.next;
     if (next == null) return;
-    if (next == OrderStatus.delivered &&
-        !await confirmDelivered(context, order)) {
-      return;
+    String? note;
+    if (next == OrderStatus.delivered) {
+      note = await confirmDelivered(context, order);
+      if (note == null) return;
     }
     if (!mounted) return;
 
     setState(() => _updating = true);
     try {
-      final updated = await widget.service.updateStatus(order.id, next);
+      final updated = await widget.service.updateStatus(
+        order.id,
+        next,
+        dropoffNote: note,
+      );
       if (!mounted) return;
       final delivered = updated.status == OrderStatus.delivered;
       delivered ? Haptics.delivered() : Haptics.step();

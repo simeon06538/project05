@@ -128,6 +128,29 @@ class CompletedDeliveryScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        if (order.dropoffNote case final note?) ...[
+                          const SectionLabel('Drop-off note'),
+                          GlassPanel(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.sticky_note_2_outlined,
+                                  color: AppColors.accentSoft,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    note,
+                                    style: textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         const SectionLabel('Route'),
                         GlassPanel(
                           child: Column(
