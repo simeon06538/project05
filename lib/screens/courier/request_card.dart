@@ -8,10 +8,13 @@ import 'order_widgets.dart';
 /// One open request in the Available list: pickup, drop-off, distance and
 /// the total the courier will be paid.
 class RequestCard extends StatelessWidget {
-  const RequestCard({super.key, required this.order, this.onTap});
+  const RequestCard({super.key, required this.order, this.onTap, this.now});
 
   final Order order;
   final VoidCallback? onTap;
+
+  /// Overridable clock so tests get a stable age badge.
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +25,13 @@ class RequestCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // K-23: "New" / "Waiting a while" badge on its own line, so it
+            // never squeezes the route on a narrow phone.
+            if (requestAge(order, now: now) case final age
+                when age != RequestAge.normal) ...[
+              AgeBadge(age: age),
+              const SizedBox(height: 10),
+            ],
             RouteStops(order: order),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),

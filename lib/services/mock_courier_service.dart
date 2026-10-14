@@ -139,7 +139,7 @@ class MockCourierService implements CourierService {
     // Fees follow the TASKS.txt rule: $2.00 + $0.50 per started 0.25 mi
     // from the Union, capped at $6.00.
     final seed = [
-      ('Student Union · Grill', 'Library · Main entrance', 0.4, 300, 100, 12),
+      ('Student Union · Grill', 'Library · Main entrance', 0.4, 300, 100, 18),
       ('Student Union · Starbucks', 'Engineering Hall', 0.7, 350, 200, 9),
       ('Student Union · Chick-fil-A', 'North Residence Hall', 1.1, 450, 0, 6),
       ('Student Union · Panda Express', 'Rec Center', 0.9, 400, 300, 4),
@@ -149,7 +149,7 @@ class MockCourierService implements CourierService {
         0.3,
         300,
         150,
-        2,
+        1,
       ),
     ];
     for (final (pickup, dropoff, miles, fee, tip, minutesAgo) in seed) {

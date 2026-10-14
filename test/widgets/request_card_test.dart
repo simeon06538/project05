@@ -41,10 +41,13 @@ Future<void> _pumpCard(
       home: MediaQuery(
         data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
         child: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: width,
-              child: RequestCard(order: order, onTap: onTap),
+          // Scrollable like the real list, so a tall card isn't an error.
+          body: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: width,
+                child: RequestCard(order: order, onTap: onTap),
+              ),
             ),
           ),
         ),
