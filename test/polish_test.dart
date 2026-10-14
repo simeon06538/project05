@@ -27,9 +27,9 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.bySemanticsLabel('Available tab'), findsOneWidget);
+    expect(find.bySemanticsLabel('Available tab, 5 open'), findsOneWidget);
     expect(
-      tester.getSemantics(find.bySemanticsLabel('Available tab')),
+      tester.getSemantics(find.bySemanticsLabel('Available tab, 5 open')),
       isSemantics(isSelected: true, isButton: true),
     );
     expect(

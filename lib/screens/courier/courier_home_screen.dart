@@ -41,6 +41,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
 
   int _selectedTab = 0;
   bool _online = true;
+  int _openCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +69,8 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                     GlassTabBar(
                       labels: _tabLabels,
                       icons: _tabIcons,
+                      // K-29: open requests, hidden while offline.
+                      badges: [_online ? _openCount : null, null, null],
                       selectedIndex: _selectedTab,
                       onSelected: (i) => setState(() => _selectedTab = i),
                     ),
@@ -85,6 +88,11 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                                   setState(() => _selectedTab = 1),
                               isVisible: _selectedTab == 0,
                               isOnline: _online,
+                              onCountChanged: (count) {
+                                if (count != _openCount) {
+                                  setState(() => _openCount = count);
+                                }
+                              },
                               onGoOnline: () => setState(() => _online = true),
                             ),
                             MyDeliveriesTab(

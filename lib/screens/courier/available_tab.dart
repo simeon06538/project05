@@ -31,6 +31,7 @@ class AvailableTab extends StatefulWidget {
     this.refreshEvery = const Duration(seconds: 15),
     this.isOnline = true,
     this.onGoOnline,
+    this.onCountChanged,
   });
 
   final CourierService service;
@@ -50,6 +51,9 @@ class AvailableTab extends StatefulWidget {
   /// K-18: while offline no requests are shown or fetched.
   final bool isOnline;
   final VoidCallback? onGoOnline;
+
+  /// K-29: called with the number of open requests after each load.
+  final ValueChanged<int>? onCountChanged;
 
   @override
   State<AvailableTab> createState() => _AvailableTabState();
@@ -117,6 +121,7 @@ class _AvailableTabState extends State<AvailableTab> {
       widget.service.fetchAvailableRequests(),
       widget.service.fetchActiveDelivery(widget.courierId),
     ).wait;
+    if (mounted) widget.onCountChanged?.call(requests.length);
     return (requests: requests, active: active);
   }
 
