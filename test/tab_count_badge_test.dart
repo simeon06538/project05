@@ -9,6 +9,10 @@ Finder _badgeOnTabBar(String text) =>
     find.descendant(of: find.byType(GlassTabBar), matching: find.text(text));
 
 Future<MockCourierService> _pumpApp(WidgetTester tester) async {
+  // A tall phone so the refresh button is on screen under the search box.
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   final service = MockCourierService(latency: Duration.zero);
   await tester.pumpWidget(CampusDeliveryApp(courierService: service));
   await tester.pump();

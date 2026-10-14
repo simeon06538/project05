@@ -5,6 +5,9 @@ import 'package:campus_delivery/main.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
 
 Future<MockCourierService> _pumpApp(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   final service = MockCourierService(latency: Duration.zero);
   await tester.pumpWidget(CampusDeliveryApp(courierService: service));
   await tester.pump();
