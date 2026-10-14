@@ -72,6 +72,16 @@ class _AvailableTabState extends State<AvailableTab> {
   Set<String>? _knownIds;
   List<Order> _newArrivals = const [];
   bool _tipsOnly = false;
+
+  /// K-35: search by restaurant or building.
+  final _search = TextEditingController();
+  String get _query => _search.text.trim();
+
+  void _clearFilters() {
+    _search.clear();
+    setState(() => _tipsOnly = false);
+  }
+
   Timer? _autoRefresh;
 
   @override
@@ -94,6 +104,7 @@ class _AvailableTabState extends State<AvailableTab> {
   @override
   void dispose() {
     _autoRefresh?.cancel();
+    _search.dispose();
     super.dispose();
   }
 
@@ -193,6 +204,7 @@ class _AvailableTabState extends State<AvailableTab> {
       data.requests,
       sort: _sort,
       tipsOnly: _tipsOnly,
+      query: _query,
     );
     final noun = total == 1 ? 'request' : 'requests';
     return [
@@ -207,6 +219,24 @@ class _AvailableTabState extends State<AvailableTab> {
         ),
         const SizedBox(height: 12),
       ],
+      TextField(
+        controller: _search,
+        onChanged: (_) => setState(() {}),
+        textInputAction: TextInputAction.search,
+        style: const TextStyle(color: AppColors.textPrimary),
+        decoration: InputDecoration(
+          hintText: 'Search restaurant or building',
+          prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+          suffixIcon: _query.isEmpty
+              ? null
+              : IconButton(
+                  tooltip: 'Clear search',
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => setState(_search.clear),
+                ),
+        ),
+      ),
+      const SizedBox(height: 4),
       RequestSortBar(
         sort: _sort,
         tipsOnly: _tipsOnly,
@@ -239,12 +269,14 @@ class _AvailableTabState extends State<AvailableTab> {
             children: [
               Expanded(
                 child: Text(
-                  'No requests with a tip right now.',
+                  _query.isNotEmpty
+                      ? 'No requests match "$_query".'
+                      : 'No requests with a tip right now.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
               TextButton(
-                onPressed: () => setState(() => _tipsOnly = false),
+                onPressed: _clearFilters,
                 child: const Text(
                   'Show all',
                   style: TextStyle(color: AppColors.accentSoft),
