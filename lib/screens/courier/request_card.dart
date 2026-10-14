@@ -53,6 +53,10 @@ class RequestCard extends StatelessWidget {
                         icon: Icons.directions_walk,
                         text: walkingLabel(order.distanceMiles),
                       ),
+                      InfoChip(
+                        icon: Icons.trending_up_rounded,
+                        text: '${formatCents(order.payPerMileCents)}/mi',
+                      ),
                       if (order.tipCents > 0)
                         InfoChip(
                           icon: Icons.volunteer_activism_outlined,

@@ -17,6 +17,10 @@ class _NoTipsService extends MockCourierService {
 }
 
 Future<void> _pumpTab(WidgetTester tester, MockCourierService service) async {
+  // A tall phone so several cards fit under the search and filter rows.
+  tester.view.physicalSize = const Size(800, 2000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
