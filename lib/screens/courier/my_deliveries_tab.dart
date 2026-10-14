@@ -11,6 +11,7 @@ import '../../widgets/primary_button.dart';
 import 'delivered_dialog.dart';
 import 'delivery_timeline.dart';
 import 'order_widgets.dart';
+import 'pickup_checklist.dart';
 import 'release_dialog.dart';
 import 'status_stepper.dart';
 import 'tab_header.dart';
@@ -38,6 +39,7 @@ class MyDeliveriesTab extends StatefulWidget {
 }
 
 class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
+  bool _pickupReady = false;
   Order? _order;
   bool _loading = true;
   bool _loadFailed = false;
@@ -62,7 +64,12 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
     });
     try {
       final order = await widget.service.fetchActiveDelivery(widget.courierId);
-      if (mounted) setState(() => _order = order);
+      if (mounted) {
+        setState(() {
+          if (order?.id != _order?.id) _pickupReady = false;
+          _order = order;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _loadFailed = true);
     } finally {
@@ -160,6 +167,9 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
             order: order,
             updating: _updating,
             onAdvance: () => _advance(order),
+            pickupReady: _pickupReady,
+            onPickupReadyChanged: (ready) =>
+                setState(() => _pickupReady = ready),
             onRelease: order.status == OrderStatus.accepted
                 ? () => _release(order)
                 : null,
@@ -174,12 +184,18 @@ class _ActiveDelivery extends StatelessWidget {
     required this.order,
     required this.updating,
     required this.onAdvance,
+    required this.pickupReady,
+    required this.onPickupReadyChanged,
     this.onRelease,
   });
 
   final Order order;
   final bool updating;
   final VoidCallback onAdvance;
+
+  /// K-33: both pickup checks ticked.
+  final bool pickupReady;
+  final ValueChanged<bool> onPickupReadyChanged;
 
   /// Only offered before pickup.
   final VoidCallback? onRelease;
@@ -271,13 +287,22 @@ class _ActiveDelivery extends StatelessWidget {
             ],
           ),
         ),
+        if (!pickedUp) ...[
+          const SizedBox(height: 16),
+          PickupChecklist(
+            // New order, fresh checklist.
+            key: ValueKey(order.id),
+            order: order,
+            onReadyChanged: onPickupReadyChanged,
+          ),
+        ],
         const SizedBox(height: 20),
         PrimaryButton(
           label: pickedUp
               ? 'Mark as delivered · ${formatCents(order.totalPayCents)}'
               : 'Mark as picked up',
           loading: updating,
-          onPressed: onAdvance,
+          onPressed: pickedUp || pickupReady ? onAdvance : null,
         ),
         if (onRelease != null)
           TextButton.icon(
