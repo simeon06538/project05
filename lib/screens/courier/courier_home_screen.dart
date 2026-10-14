@@ -73,25 +73,30 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                       child: IndexedStack(
                         index: _selectedTab,
                         children: [
-                          AvailableTab(
-                            service: widget.service,
-                            courierId: widget.courierId,
-                            onViewActiveDelivery: () =>
-                                setState(() => _selectedTab = 1),
-                            isVisible: _selectedTab == 0,
-                            isOnline: _online,
-                            onGoOnline: () => setState(() => _online = true),
-                          ),
-                          MyDeliveriesTab(
-                            service: widget.service,
-                            courierId: widget.courierId,
-                            isVisible: _selectedTab == 1,
-                          ),
-                          EarningsTab(
-                            service: widget.service,
-                            courierId: widget.courierId,
-                            isVisible: _selectedTab == 2,
-                          ),
+                          for (final (i, tab) in [
+                            AvailableTab(
+                              service: widget.service,
+                              courierId: widget.courierId,
+                              onViewActiveDelivery: () =>
+                                  setState(() => _selectedTab = 1),
+                              isVisible: _selectedTab == 0,
+                              isOnline: _online,
+                              onGoOnline: () => setState(() => _online = true),
+                            ),
+                            MyDeliveriesTab(
+                              service: widget.service,
+                              courierId: widget.courierId,
+                              isVisible: _selectedTab == 1,
+                            ),
+                            EarningsTab(
+                              service: widget.service,
+                              courierId: widget.courierId,
+                              isVisible: _selectedTab == 2,
+                            ),
+                          ].indexed)
+                            // Hidden tabs stay alive but pause their
+                            // animations (e.g. looping empty states).
+                            TickerMode(enabled: i == _selectedTab, child: tab),
                         ],
                       ),
                     ),
