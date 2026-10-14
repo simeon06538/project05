@@ -16,6 +16,7 @@ import 'request_card.dart';
 import 'request_detail_screen.dart';
 import 'request_filters.dart';
 import 'request_sort_bar.dart';
+import 'restaurant_filter_row.dart';
 import 'tab_header.dart';
 
 /// K-03: list of open delivery requests from the [CourierService].
@@ -75,11 +76,17 @@ class _AvailableTabState extends State<AvailableTab> {
 
   /// K-35: search by restaurant or building.
   final _search = TextEditingController();
+
+  /// K-36: show only this restaurant's requests; null means all.
+  String? _restaurant;
   String get _query => _search.text.trim();
 
   void _clearFilters() {
     _search.clear();
-    setState(() => _tipsOnly = false);
+    setState(() {
+      _tipsOnly = false;
+      _restaurant = null;
+    });
   }
 
   Timer? _autoRefresh;
@@ -205,6 +212,7 @@ class _AvailableTabState extends State<AvailableTab> {
       sort: _sort,
       tipsOnly: _tipsOnly,
       query: _query,
+      restaurant: _restaurant,
     );
     final noun = total == 1 ? 'request' : 'requests';
     return [
@@ -243,6 +251,11 @@ class _AvailableTabState extends State<AvailableTab> {
         onSortChanged: (sort) => setState(() => _sort = sort),
         onTipsOnlyChanged: (on) => setState(() => _tipsOnly = on),
       ),
+      RestaurantFilterRow(
+        counts: restaurantCounts(data.requests),
+        selected: _restaurant,
+        onSelected: (name) => setState(() => _restaurant = name),
+      ),
       const SizedBox(height: 14),
       Row(
         children: [
@@ -271,6 +284,8 @@ class _AvailableTabState extends State<AvailableTab> {
                 child: Text(
                   _query.isNotEmpty
                       ? 'No requests match "$_query".'
+                      : _restaurant != null
+                      ? 'No requests from $_restaurant right now.'
                       : 'No requests with a tip right now.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
