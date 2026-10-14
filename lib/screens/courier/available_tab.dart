@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import '../../services/courier_service.dart';
+import '../../services/haptics.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/status_views.dart';
 import 'active_delivery_banner.dart';
+import 'new_requests_banner.dart';
 import 'request_card.dart';
 import 'request_detail_screen.dart';
 import 'request_filters.dart';
@@ -64,6 +66,11 @@ typedef _TabData = ({List<Order> requests, Order? active});
 class _AvailableTabState extends State<AvailableTab> {
   late Future<_TabData> _data;
   RequestSort _sort = RequestSort.oldest;
+
+  /// K-32: ids seen on the last load (null before the first), and the
+  /// requests that appeared since then.
+  Set<String>? _knownIds;
+  List<Order> _newArrivals = const [];
   bool _tipsOnly = false;
   Timer? _autoRefresh;
 
@@ -121,7 +128,27 @@ class _AvailableTabState extends State<AvailableTab> {
       widget.service.fetchAvailableRequests(),
       widget.service.fetchActiveDelivery(widget.courierId),
     ).wait;
-    if (mounted) widget.onCountChanged?.call(requests.length);
+    if (mounted) {
+      widget.onCountChanged?.call(requests.length);
+      final known = _knownIds;
+      final arrived = [
+        for (final o in requests)
+          if (known != null && !known.contains(o.id)) o,
+      ];
+      _knownIds = {for (final o in requests) o.id};
+      if (arrived.isNotEmpty) {
+        Haptics.step();
+        setState(() => _newArrivals = arrived);
+      } else if (_newArrivals.isNotEmpty) {
+        // Drop any that were accepted or taken in the meantime.
+        setState(() {
+          _newArrivals = [
+            for (final o in _newArrivals)
+              if (_knownIds!.contains(o.id)) o,
+          ];
+        });
+      }
+    }
     return (requests: requests, active: active);
   }
 
@@ -169,6 +196,17 @@ class _AvailableTabState extends State<AvailableTab> {
     );
     final noun = total == 1 ? 'request' : 'requests';
     return [
+      if (_newArrivals.isNotEmpty) ...[
+        NewRequestsBanner(
+          newRequests: _newArrivals,
+          onView: (order) {
+            setState(() => _newArrivals = const []);
+            _openDetails(order, locked: data.active != null);
+          },
+          onDismiss: () => setState(() => _newArrivals = const []),
+        ),
+        const SizedBox(height: 12),
+      ],
       RequestSortBar(
         sort: _sort,
         tipsOnly: _tipsOnly,
