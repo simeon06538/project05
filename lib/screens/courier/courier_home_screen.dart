@@ -39,6 +39,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
   ];
 
   int _selectedTab = 0;
+  bool _online = true;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +55,11 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    CourierHeader(name: widget.courierName),
+                    CourierHeader(
+                      name: widget.courierName,
+                      online: _online,
+                      onOnlineChanged: (on) => setState(() => _online = on),
+                    ),
                     const SizedBox(height: 16),
                     GlassTabBar(
                       labels: _tabLabels,
@@ -74,6 +79,8 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                             onViewActiveDelivery: () =>
                                 setState(() => _selectedTab = 1),
                             isVisible: _selectedTab == 0,
+                            isOnline: _online,
+                            onGoOnline: () => setState(() => _online = true),
                           ),
                           MyDeliveriesTab(
                             service: widget.service,

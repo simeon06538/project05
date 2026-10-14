@@ -37,7 +37,7 @@ void main() {
     expect(find.text('AM'), findsOneWidget);
     expect(find.text('Good morning'), findsOneWidget);
     expect(find.text('Alex Morgan'), findsOneWidget);
-    expect(find.text('Courier'), findsOneWidget);
+    expect(find.text('Online'), findsOneWidget);
   });
 
   testWidgets('home screen shows the demo courier header', (tester) async {

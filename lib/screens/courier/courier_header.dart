@@ -17,11 +17,22 @@ String greetingFor(DateTime time) {
 }
 
 /// K-17: avatar with initials, a time-of-day greeting and the courier's
-/// name, shown above the tabs.
+/// name, shown above the tabs. K-18 adds the Online/Offline switch.
 class CourierHeader extends StatelessWidget {
-  const CourierHeader({super.key, required this.name, this.now});
+  const CourierHeader({
+    super.key,
+    required this.name,
+    this.now,
+    this.online = true,
+    this.onOnlineChanged,
+  });
 
   final String name;
+
+  /// K-18: whether the courier is taking requests; tapping the pill
+  /// calls [onOnlineChanged] with the opposite value.
+  final bool online;
+  final ValueChanged<bool>? onOnlineChanged;
 
   /// Overridable clock so tests get a stable greeting.
   final DateTime? now;
@@ -71,29 +82,67 @@ class CourierHeader extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        _OnlinePill(online: online, onChanged: onOnlineChanged),
+      ],
+    );
+  }
+}
+
+class _OnlinePill extends StatelessWidget {
+  const _OnlinePill({required this.online, required this.onChanged});
+
+  final bool online;
+  final ValueChanged<bool>? onChanged;
+
+  static const _onlineGreen = Color(0xFF4ADE80);
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      toggled: online,
+      button: true,
+      label: online ? 'Online, tap to go offline' : 'Offline, tap to go online',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onChanged == null ? null : () => onChanged!(!online),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
-            color: AppColors.accent.withAlpha(70),
+            color: online
+                ? AppColors.accent.withAlpha(150)
+                : const Color(0x14FFFFFF),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: online ? AppColors.accentSoft : const Color(0x33FFFFFF),
+            ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.delivery_dining,
-                size: 14,
-                color: AppColors.textSecondary,
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: online ? _onlineGreen : AppColors.textMuted,
+                ),
               ),
-              SizedBox(width: 4),
+              const SizedBox(width: 6),
               Text(
-                'Courier',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                online ? 'Online' : 'Offline',
+                style: TextStyle(
+                  color: online
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
