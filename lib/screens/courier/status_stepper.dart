@@ -32,11 +32,16 @@ class StatusStepper extends StatelessWidget {
                     : const Color(0x33FFFFFF),
               ),
             ),
-          _Step(
-            label: _steps[i].$2,
-            icon: _steps[i].$3,
-            done: i <= current,
-            isCurrent: i == current,
+          // Fixed width so long labels or big text wrap instead of
+          // overflowing (K-30).
+          SizedBox(
+            width: 72,
+            child: _Step(
+              label: _steps[i].$2,
+              icon: _steps[i].$3,
+              done: i <= current,
+              isCurrent: i == current,
+            ),
           ),
         ],
       ],
@@ -86,6 +91,9 @@ class _Step extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 12,
               color: done ? AppColors.textPrimary : AppColors.textMuted,

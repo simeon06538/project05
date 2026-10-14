@@ -202,10 +202,12 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
-                                    'Paw Points order #',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
+                                  const Expanded(
+                                    child: Text(
+                                      'Paw Points order #',
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                      ),
                                     ),
                                   ),
                                   Text(
