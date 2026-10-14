@@ -7,6 +7,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
+import 'completed_delivery_screen.dart';
 import 'earnings_stats.dart';
 import 'tab_header.dart';
 import 'weekly_earnings_chart.dart';
@@ -164,6 +165,26 @@ class _HistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // K-27: tap for the full breakdown.
+    return Semantics(
+      button: true,
+      label:
+          'Delivery to ${order.dropoffLocation}, '
+          '${formatCents(order.totalPayCents)}, view details',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => CompletedDeliveryScreen(order: order),
+          ),
+        ),
+        child: _card(),
+      ),
+    );
+  }
+
+  Widget _card() {
     return GlassPanel(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
