@@ -36,6 +36,8 @@ class Order {
     this.pickedUpAt,
     this.deliveredAt,
     this.dropoffNote,
+    this.customerRating,
+    this.customerNote,
   });
 
   final String id;
@@ -58,6 +60,11 @@ class Order {
 
   /// K-34: optional note left at drop-off, e.g. "Left with the front desk".
   final String? dropoffNote;
+
+  /// K-47: the customer's 1-5 star rating and optional thank-you note,
+  /// left after delivery.
+  final int? customerRating;
+  final String? customerNote;
 
   /// When the order reached [step], or null if it hasn't yet.
   DateTime? timeOf(OrderStatus step) => switch (step) {
@@ -100,6 +107,8 @@ class Order {
     DateTime? pickedUpAt,
     DateTime? deliveredAt,
     String? dropoffNote,
+    int? customerRating,
+    String? customerNote,
   }) {
     return Order(
       id: id,
@@ -118,6 +127,8 @@ class Order {
       pickedUpAt: pickedUpAt ?? this.pickedUpAt,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       dropoffNote: dropoffNote ?? this.dropoffNote,
+      customerRating: customerRating ?? this.customerRating,
+      customerNote: customerNote ?? this.customerNote,
     );
   }
 }

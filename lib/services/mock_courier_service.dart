@@ -87,6 +87,13 @@ class MockCourierService implements CourierService {
       updatedAt: now,
       pickedUpAt: newStatus == OrderStatus.pickedUp ? now : null,
       deliveredAt: newStatus == OrderStatus.delivered ? now : null,
+      // K-47 demo: the customer rates the delivery straight away.
+      customerRating: newStatus == OrderStatus.delivered
+          ? _demoRating(order)
+          : null,
+      customerNote: newStatus == OrderStatus.delivered
+          ? _demoNote(order)
+          : null,
       dropoffNote:
           newStatus == OrderStatus.delivered &&
               (dropoffNote?.trim().isNotEmpty ?? false)
@@ -161,6 +168,20 @@ class MockCourierService implements CourierService {
       throw const ServiceUnavailableException();
     }
   }
+
+  static const _thankYouNotes = [
+    'Thanks for the quick delivery!',
+    'Still hot - thank you!',
+    null,
+    'Super friendly, thanks!',
+    'Right on time, appreciate it.',
+  ];
+
+  /// Same order, same rating, so demos and tests are predictable.
+  int _demoSeed(Order order) => order.id.codeUnits.fold(0, (a, b) => a + b);
+  int _demoRating(Order order) => _demoSeed(order) % 4 == 0 ? 4 : 5;
+  String? _demoNote(Order order) =>
+      _thankYouNotes[_demoSeed(order) % _thankYouNotes.length];
 
   /// K-31: puts everything back to how the demo started - the five open
   /// requests, no active deliveries and zero balances - plus a week of
@@ -262,6 +283,8 @@ class MockCourierService implements CourierService {
         deliveredAt: delivered,
         // K-34 demo: yesterday's deliveries came with a drop-off note.
         dropoffNote: daysAgo == 1 ? 'Left with the front desk' : null,
+        customerRating: _demoRating(order),
+        customerNote: _demoNote(order),
       );
       _balances.update(
         courierId,
