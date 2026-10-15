@@ -8,6 +8,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/status_views.dart';
 import 'order_widgets.dart';
+import 'achievements.dart';
 import 'completed_delivery_screen.dart';
 import 'daily_goal_ring.dart';
 import 'earnings_stats.dart';
@@ -198,6 +199,11 @@ class _EarningsTabState extends State<EarningsTab> {
                 child: WeeklyEarningsChart(
                   completed: earnings.completedDeliveries,
                 ),
+              ),
+              const SizedBox(height: 16),
+              // K-46: badges for milestones, from all-time deliveries.
+              AchievementsPanel(
+                achievements: achievementsFor(earnings.completedDeliveries),
               ),
               const SizedBox(height: 12),
               ..._rangeSection(earnings),
