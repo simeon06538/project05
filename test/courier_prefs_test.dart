@@ -14,7 +14,11 @@ Future<CourierPrefs> _pumpApp(
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  SharedPreferences.setMockInitialValues(saved);
+  // Intro already seen (K-44), so the app opens on the home screen.
+  SharedPreferences.setMockInitialValues({
+    'courier.onboardingDone': true,
+    ...saved,
+  });
   final prefs = await CourierPrefs.load();
   await tester.pumpWidget(
     CampusDeliveryApp(
