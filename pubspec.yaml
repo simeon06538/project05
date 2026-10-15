@@ -41,6 +41,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # K-49: end-to-end tests on a device or emulator.
+  integration_test:
+    sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
