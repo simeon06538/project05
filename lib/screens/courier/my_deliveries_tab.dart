@@ -12,6 +12,7 @@ import 'delivered_dialog.dart';
 import 'delivery_timeline.dart';
 import 'order_widgets.dart';
 import 'pickup_checklist.dart';
+import 'problem_report_sheet.dart';
 import 'release_dialog.dart';
 import 'status_stepper.dart';
 import 'tab_header.dart';
@@ -74,6 +75,41 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
       if (mounted) setState(() => _loadFailed = true);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// K-51: report a problem; a closed restaurant cancels the delivery.
+  Future<void> _reportProblem(Order order) async {
+    final report = await showProblemReportSheet(context, order);
+    if (report == null || !mounted) return;
+    setState(() => _updating = true);
+    try {
+      final updated = await widget.service.reportProblem(
+        order.id,
+        widget.courierId,
+        report.problem,
+        details: report.details,
+      );
+      if (!mounted) return;
+      final cancelled = updated.status == OrderStatus.cancelled;
+      setState(() => _order = cancelled ? null : updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            cancelled
+                ? 'Order cancelled: ${report.problem.label.toLowerCase()}. '
+                      'No penalty for you.'
+                : 'Problem reported. Support has been notified.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Haptics.problem();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) setState(() => _updating = false);
     }
   }
 
@@ -175,6 +211,7 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
             pickupReady: _pickupReady,
             onPickupReadyChanged: (ready) =>
                 setState(() => _pickupReady = ready),
+            onReportProblem: () => _reportProblem(order),
             onRelease: order.status == OrderStatus.accepted
                 ? () => _release(order)
                 : null,
@@ -191,6 +228,7 @@ class _ActiveDelivery extends StatelessWidget {
     required this.onAdvance,
     required this.pickupReady,
     required this.onPickupReadyChanged,
+    required this.onReportProblem,
     this.onRelease,
   });
 
@@ -204,6 +242,9 @@ class _ActiveDelivery extends StatelessWidget {
 
   /// Only offered before pickup.
   final VoidCallback? onRelease;
+
+  /// K-51: opens the problem report sheet.
+  final VoidCallback onReportProblem;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +277,27 @@ class _ActiveDelivery extends StatelessWidget {
                     : 'Show order ${order.pawPointsOrderNumber} at the counter.',
                 style: textTheme.bodyMedium,
               ),
+              // K-51: a reported (non-cancelling) problem stays visible.
+              if (order.problem case final problem?) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.report_problem_outlined,
+                      size: 18,
+                      color: Color(0xFFFBBF24),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Reported: ${problem.label}. Support has been '
+                        'notified.',
+                        style: textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -318,6 +380,15 @@ class _ActiveDelivery extends StatelessWidget {
               foregroundColor: AppColors.textSecondary,
             ),
           ),
+        TextButton.icon(
+          onPressed: updating ? null : onReportProblem,
+          icon: const Icon(Icons.report_problem_outlined, size: 18),
+          label: const Text('Report a problem'),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            minimumSize: const Size(48, 48),
+          ),
+        ),
         // K-24: history below the main action, so the button stays on screen.
         const SizedBox(height: 20),
         GlassPanel(
