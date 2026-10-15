@@ -4,6 +4,7 @@ import '../../models/order.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
+import 'customer_rating.dart';
 import 'delivery_timeline.dart';
 import 'detail_widgets.dart';
 import 'order_widgets.dart';
@@ -128,6 +129,14 @@ class CompletedDeliveryScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        if (order.customerRating case final rating?) ...[
+                          const SectionLabel('Customer rating'),
+                          CustomerRatingPanel(
+                            rating: rating,
+                            note: order.customerNote,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         if (order.dropoffNote case final note?) ...[
                           const SectionLabel('Drop-off note'),
                           GlassPanel(
