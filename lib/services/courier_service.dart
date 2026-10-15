@@ -32,6 +32,18 @@ abstract class CourierService {
   /// Demo balance plus completed deliveries, newest first.
   Future<CourierEarnings> fetchEarnings(String courierId);
 
+  /// K-51: reports [problem] on the courier's active delivery. A closed
+  /// restaurant cancels the order (no pay); other problems flag it for
+  /// support and the delivery carries on. Throws
+  /// [InvalidStatusChangeException] if the problem doesn't fit the
+  /// order's status, and [NotYourDeliveryException] for someone else's.
+  Future<Order> reportProblem(
+    String orderId,
+    String courierId,
+    DeliveryProblem problem, {
+    String? details,
+  });
+
   /// K-28: gives back an accepted delivery before pickup, so it returns to
   /// the open list for other couriers. Throws [InvalidStatusChangeException]
   /// once it's picked up, and [NotYourDeliveryException] if another

@@ -15,6 +15,28 @@ enum OrderStatus {
   };
 }
 
+/// K-51: problems a courier can report on an active delivery. Only
+/// [restaurantClosed] cancels the order; the rest flag it for support.
+enum DeliveryProblem {
+  restaurantClosed('Restaurant is closed', cancelsOrder: true),
+  orderNotReady("Order isn't ready (long wait)"),
+  cantFindCustomer("Can't find the customer"),
+  other('Something else');
+
+  const DeliveryProblem(this.label, {this.cancelsOrder = false});
+
+  final String label;
+  final bool cancelsOrder;
+
+  /// The problems that make sense at [status].
+  static List<DeliveryProblem> optionsFor(OrderStatus status) =>
+      switch (status) {
+        OrderStatus.accepted => [restaurantClosed, orderNotReady, other],
+        OrderStatus.pickedUp => [cantFindCustomer, other],
+        _ => const [],
+      };
+}
+
 /// A delivery request. Money is stored in cents to avoid rounding errors.
 ///
 /// Shared with the customer side; JSON (fromJson/toJson) is added in C-01.
@@ -38,6 +60,8 @@ class Order {
     this.dropoffNote,
     this.customerRating,
     this.customerNote,
+    this.problem,
+    this.problemDetails,
   });
 
   final String id;
@@ -65,6 +89,10 @@ class Order {
   /// left after delivery.
   final int? customerRating;
   final String? customerNote;
+
+  /// K-51: a problem the courier reported, and any extra details.
+  final DeliveryProblem? problem;
+  final String? problemDetails;
 
   /// When the order reached [step], or null if it hasn't yet.
   DateTime? timeOf(OrderStatus step) => switch (step) {
@@ -109,6 +137,8 @@ class Order {
     String? dropoffNote,
     int? customerRating,
     String? customerNote,
+    DeliveryProblem? problem,
+    String? problemDetails,
   }) {
     return Order(
       id: id,
@@ -129,6 +159,8 @@ class Order {
       dropoffNote: dropoffNote ?? this.dropoffNote,
       customerRating: customerRating ?? this.customerRating,
       customerNote: customerNote ?? this.customerNote,
+      problem: problem ?? this.problem,
+      problemDetails: problemDetails ?? this.problemDetails,
     );
   }
 }

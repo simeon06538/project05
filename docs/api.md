@@ -41,7 +41,9 @@
   "deliveredAt": null,
   "dropoffNote": null,
   "customerRating": null,
-  "customerNote": null
+  "customerNote": null,
+  "problem": null,
+  "problemDetails": null
 }
 ```
 
@@ -122,6 +124,21 @@ fee + tip to the courier's balance **in the same transaction** (B-10).
 `acceptedAt` cleared. Only allowed while `accepted` (`409
 invalid_transition` after pickup); `403 not_your_delivery` if another
 courier holds it.
+
+### Report a problem
+`POST /orders/{orderId}/problem` -> `reportProblem` (K-51)
+
+```json
+{ "courierId": "courier-demo", "problem": "restaurantClosed", "details": "Lights off at 9pm" }
+```
+
+`problem` is one of `restaurantClosed`, `orderNotReady`,
+`cantFindCustomer`, `other`. `restaurantClosed` (only while `accepted`)
+cancels the order - `status: "cancelled"`, no pay; the others flag it for
+support and the delivery carries on. `200` with the updated Order (which
+now includes `problem` and `problemDetails`). `409 invalid_transition` if
+the problem doesn't fit the status; `403 not_your_delivery` for another
+courier's order.
 
 ### Earnings
 `GET /couriers/{courierId}/earnings` -> `fetchEarnings`

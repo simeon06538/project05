@@ -111,6 +111,30 @@ class MockCourierService implements CourierService {
   }
 
   @override
+  Future<Order> reportProblem(
+    String orderId,
+    String courierId,
+    DeliveryProblem problem, {
+    String? details,
+  }) async {
+    await _delay();
+    final order = _find(orderId);
+    if (order.courierId != courierId) {
+      throw NotYourDeliveryException(orderId);
+    }
+    if (!DeliveryProblem.optionsFor(order.status).contains(problem)) {
+      throw InvalidStatusChangeException(order.status, OrderStatus.cancelled);
+    }
+    final trimmed = details?.trim();
+    return _orders[orderId] = order.copyWith(
+      status: problem.cancelsOrder ? OrderStatus.cancelled : null,
+      updatedAt: DateTime.now(),
+      problem: problem,
+      problemDetails: (trimmed?.isEmpty ?? true) ? null : trimmed,
+    );
+  }
+
+  @override
   Future<Order> releaseDelivery(String orderId, String courierId) async {
     await _delay();
     final order = _find(orderId);
