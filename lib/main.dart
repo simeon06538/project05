@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'screens/courier/courier_home_screen.dart';
+import 'screens/courier/onboarding_screen.dart';
 import 'services/courier_prefs.dart';
 import 'services/courier_service.dart';
 import 'services/mock_courier_service.dart';
@@ -56,6 +57,8 @@ class CampusDeliveryApp extends StatefulWidget {
 }
 
 class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
+  late bool _showIntro = widget.prefs != null && !widget.prefs!.onboardingDone;
+
   late final _highContrast =
       widget.highContrast ?? ValueNotifier(widget.prefs?.highContrast ?? false);
 
@@ -84,12 +87,20 @@ class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
           child: child!,
         ),
         // TODO(C-02): replace with the role-selection screen once it exists.
-        home: CourierHomeScreen(
-          service: widget.courierService,
-          courierId: demoCourierId,
-          courierName: demoCourierName,
-          prefs: widget.prefs,
-        ),
+        // K-44: the intro comes first, once, when settings are saved.
+        home: _showIntro
+            ? OnboardingScreen(
+                onDone: () {
+                  widget.prefs?.setOnboardingDone(true);
+                  setState(() => _showIntro = false);
+                },
+              )
+            : CourierHomeScreen(
+                service: widget.courierService,
+                courierId: demoCourierId,
+                courierName: demoCourierName,
+                prefs: widget.prefs,
+              ),
       ),
     );
   }

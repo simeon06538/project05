@@ -9,6 +9,7 @@ import '../../models/order.dart';
 import 'courier_header.dart';
 import 'daily_goal_ring.dart';
 import 'detail_widgets.dart';
+import 'onboarding_screen.dart';
 import 'request_sort_bar.dart';
 
 /// K-31: change the display name and reset the demo data.
@@ -235,7 +236,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
+                        // K-44: see the first-launch intro again.
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => OnboardingScreen(
+                                onDone: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ),
+                          icon: const Icon(Icons.slideshow_rounded),
+                          label: const Text('Replay intro'),
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         Text(
                           'Campus Delivery · class prototype · no money is '
                           'transferred.',
