@@ -9,7 +9,7 @@ function usersRouter(db) {
   const router = express.Router();
 
   router.post('/', (req, res) => {
-    const body = req.body ?? {};
+    const body = req.body;
     const check = new Checker();
     const name = check.string(body.name, 'name');
     const role = check.oneOf(body.role, 'role', ['customer', 'courier']);

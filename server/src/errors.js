@@ -16,6 +16,11 @@ const conflict = (code, message) => new HttpError(409, code, message);
 
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
+  // Errors from express.json(): malformed JSON, body too large, etc.
+  if (!(err instanceof HttpError) && err.expose && err.status >= 400 && err.status < 500) {
+    const message = err.type === 'entity.parse.failed' ? 'Request body is not valid JSON' : err.message;
+    err = validationError(message);
+  }
   if (!(err instanceof HttpError)) {
     console.error(err);
     err = new HttpError(500, 'internal_error', 'Something went wrong on the server');

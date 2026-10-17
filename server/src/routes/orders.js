@@ -18,7 +18,7 @@ function ordersRouter(db) {
   const getLocation = db.prepare('SELECT * FROM locations WHERE id = ?');
 
   router.post('/', (req, res) => {
-    const body = req.body ?? {};
+    const body = req.body;
     const check = new Checker();
     const customerId = check.id(body.customerId, 'customerId');
     const pickupId = check.string(body.pickupLocation, 'pickupLocation', { max: 64 });
@@ -118,7 +118,7 @@ function ordersRouter(db) {
   router.patch('/:id/accept', (req, res) => {
     const orderId = parseIdParam(req.params.id);
     const check = new Checker();
-    const courierId = check.id((req.body ?? {}).courierId, 'courierId');
+    const courierId = check.id(req.body.courierId, 'courierId');
     check.done();
     res.json(orderToJson(acceptOrder.immediate(orderId, courierId)));
   });
@@ -151,9 +151,10 @@ function ordersRouter(db) {
 
   router.patch('/:id/status', (req, res) => {
     const orderId = parseIdParam(req.params.id);
-    const body = req.body ?? {};
+    const body = req.body;
     const check = new Checker();
-    const status = check.oneOf(body.status, 'status', Object.keys(ACTOR_FOR_STATUS));
+    if (body.status === 'accepted') check.fail('status', 'cannot be accepted here; use PATCH /orders/:id/accept');
+    const status = body.status === 'accepted' ? null : check.oneOf(body.status, 'status', Object.keys(ACTOR_FOR_STATUS));
     const actorRole = ACTOR_FOR_STATUS[status];
     const actorField = actorRole === 'courier' ? 'courierId' : 'customerId';
     const actorId = status && check.id(body[actorField], actorField);
