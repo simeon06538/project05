@@ -4,6 +4,7 @@ const { notFound } = require('../errors');
 const { orderToJson } = require('../serialize');
 const { deliveryFeeCents, tipToCents } = require('../pricing');
 const { getUser } = require('./users');
+const { STATUSES } = require('../status');
 
 const ORDER_SELECT = `
   SELECT o.*, p.name AS pickup_location_name, d.name AS dropoff_location_name
@@ -51,6 +52,39 @@ function ordersRouter(db) {
         pawPointsOrderNumber, now, now);
 
     res.status(201).json(orderToJson(getOrder(db, Number(lastInsertRowid))));
+  });
+
+  // Filters: ?customerId=1, ?courierId=3, ?status=requested or status=accepted,picked_up.
+  router.get('/', (req, res) => {
+    const check = new Checker();
+    const where = [];
+    const params = [];
+
+    for (const field of ['customerId', 'courierId']) {
+      const raw = req.query[field];
+      if (raw === undefined) continue;
+      if (typeof raw !== 'string' || !/^\d+$/.test(raw) || Number(raw) < 1) {
+        check.fail(field, 'must be a positive integer');
+        continue;
+      }
+      where.push(field === 'customerId' ? 'o.customer_id = ?' : 'o.courier_id = ?');
+      params.push(Number(raw));
+    }
+
+    if (req.query.status !== undefined) {
+      const statuses = [req.query.status].flat().join(',').split(',').map((s) => s.trim());
+      const bad = statuses.filter((s) => !STATUSES.includes(s));
+      if (bad.length > 0) {
+        check.fail('status', `must be one or more of: ${STATUSES.join(', ')}`);
+      } else {
+        where.push(`o.status IN (${statuses.map(() => '?').join(', ')})`);
+        params.push(...statuses);
+      }
+    }
+    check.done();
+
+    const sql = `${ORDER_SELECT} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY o.created_at DESC, o.id DESC`;
+    res.json(db.prepare(sql).all(...params).map(orderToJson));
   });
 
   router.get('/:id', (req, res) => {
