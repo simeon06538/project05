@@ -1,10 +1,10 @@
 const express = require('express');
 const { Checker, parseIdParam } = require('../validate');
-const { conflict, notFound } = require('../errors');
+const { conflict, forbidden, notFound } = require('../errors');
 const { orderToJson } = require('../serialize');
 const { deliveryFeeCents, tipToCents } = require('../pricing');
 const { getUser } = require('./users');
-const { STATUSES } = require('../status');
+const { STATUSES, canTransition, ACTOR_FOR_STATUS } = require('../status');
 
 const ORDER_SELECT = `
   SELECT o.*, p.name AS pickup_location_name, d.name AS dropoff_location_name
@@ -121,6 +121,38 @@ function ordersRouter(db) {
     const courierId = check.id((req.body ?? {}).courierId, 'courierId');
     check.done();
     res.json(orderToJson(acceptOrder.immediate(orderId, courierId)));
+  });
+
+  const updateStatus = db.transaction((orderId, status, actorRole, actorId) => {
+    const order = getOrder(db, orderId);
+    if (!order) throw notFound(`Order ${orderId} not found`);
+    if (!canTransition(order.status, status)) {
+      throw conflict('invalid_transition', `Cannot change order ${orderId} from ${order.status} to ${status}`);
+    }
+    const ownerId = actorRole === 'courier' ? order.courier_id : order.customer_id;
+    if (ownerId !== actorId) {
+      throw forbidden(`${actorRole === 'courier' ? 'Courier' : 'Customer'} ${actorId} is not on order ${orderId}`);
+    }
+
+    const now = new Date().toISOString();
+    const { changes } = db
+      .prepare('UPDATE orders SET status = ?, updated_at = ?, delivered_at = ? WHERE id = ? AND status = ?')
+      .run(status, now, status === 'delivered' ? now : null, orderId, order.status);
+    if (changes === 0) throw conflict('invalid_transition', `Order ${orderId} changed while updating; try again`);
+
+    return getOrder(db, orderId);
+  });
+
+  router.patch('/:id/status', (req, res) => {
+    const orderId = parseIdParam(req.params.id);
+    const body = req.body ?? {};
+    const check = new Checker();
+    const status = check.oneOf(body.status, 'status', Object.keys(ACTOR_FOR_STATUS));
+    const actorRole = ACTOR_FOR_STATUS[status];
+    const actorField = actorRole === 'courier' ? 'courierId' : 'customerId';
+    const actorId = status && check.id(body[actorField], actorField);
+    check.done();
+    res.json(orderToJson(updateStatus.immediate(orderId, status, actorRole, actorId)));
   });
 
   return router;
