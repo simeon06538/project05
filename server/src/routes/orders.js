@@ -1,6 +1,6 @@
 const express = require('express');
 const { Checker, parseIdParam } = require('../validate');
-const { notFound } = require('../errors');
+const { conflict, notFound } = require('../errors');
 const { orderToJson } = require('../serialize');
 const { deliveryFeeCents, tipToCents } = require('../pricing');
 const { getUser } = require('./users');
@@ -92,6 +92,35 @@ function ordersRouter(db) {
     const order = getOrder(db, id);
     if (!order) throw notFound(`Order ${id} not found`);
     res.json(orderToJson(order));
+  });
+
+  // Runs as one IMMEDIATE transaction (write lock taken up front), and the UPDATE
+  // only matches while the order is still 'requested', so if two couriers race
+  // exactly one of them gets the order.
+  const acceptOrder = db.transaction((orderId, courierId) => {
+    if (!getOrder(db, orderId)) throw notFound(`Order ${orderId} not found`);
+    const courier = getUser(db, courierId);
+    if (!courier || courier.role !== 'courier') throw notFound(`Courier ${courierId} not found`);
+
+    const active = db
+      .prepare("SELECT id FROM orders WHERE courier_id = ? AND status IN ('accepted', 'picked_up') LIMIT 1")
+      .get(courierId);
+    if (active) throw conflict('courier_busy', `Courier ${courierId} already has an active delivery (order ${active.id})`);
+
+    const { changes } = db
+      .prepare("UPDATE orders SET status = 'accepted', courier_id = ?, updated_at = ? WHERE id = ? AND status = 'requested'")
+      .run(courierId, new Date().toISOString(), orderId);
+    if (changes === 0) throw conflict('already_accepted', `Order ${orderId} is no longer available`);
+
+    return getOrder(db, orderId);
+  });
+
+  router.patch('/:id/accept', (req, res) => {
+    const orderId = parseIdParam(req.params.id);
+    const check = new Checker();
+    const courierId = check.id((req.body ?? {}).courierId, 'courierId');
+    check.done();
+    res.json(orderToJson(acceptOrder.immediate(orderId, courierId)));
   });
 
   return router;
