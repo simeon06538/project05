@@ -6,10 +6,13 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "reset": "node src/reset.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
