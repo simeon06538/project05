@@ -140,6 +140,12 @@ function ordersRouter(db) {
       .run(status, now, status === 'delivered' ? now : null, orderId, order.status);
     if (changes === 0) throw conflict('invalid_transition', `Order ${orderId} changed while updating; try again`);
 
+    // Same transaction as the status change, so pay is credited exactly once.
+    if (status === 'delivered') {
+      db.prepare('UPDATE users SET earnings_cents = earnings_cents + ? WHERE id = ?')
+        .run(order.total_pay_cents, order.courier_id);
+    }
+
     return getOrder(db, orderId);
   });
 
