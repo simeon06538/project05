@@ -1,6 +1,7 @@
 const express = require('express');
 const { locationsRouter } = require('./routes/locations');
 const { usersRouter } = require('./routes/users');
+const { ordersRouter } = require('./routes/orders');
 const { errorHandler } = require('./errors');
 
 // Builds the Express app around a database handle so tests can pass an
@@ -16,6 +17,7 @@ function createApp(db) {
 
   app.use('/locations', locationsRouter(db));
   app.use('/users', usersRouter(db));
+  app.use('/orders', ordersRouter(db));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });

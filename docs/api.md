@@ -179,7 +179,7 @@ Rules:
 - `pawPointsOrderNumber` is required, 1-40 chars.
 
 `201` returns the Order with `status: "requested"`.
-Errors: `400 validation_error`, `404 not_found` (customer doesn't exist).
+Errors: `400 validation_error`, `404 not_found` (no user with that id, or the user is not a customer).
 
 ### `GET /orders`
 
