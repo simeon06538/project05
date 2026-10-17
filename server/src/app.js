@@ -1,4 +1,5 @@
 const express = require('express');
+const { locationsRouter } = require('./routes/locations');
 
 // Builds the Express app around a database handle so tests can pass an
 // in-memory DB. Route modules (B-05 to B-11) get mounted here.
@@ -10,6 +11,8 @@ function createApp(db) {
     db.prepare('SELECT 1').get();
     res.json({ status: 'ok' });
   });
+
+  app.use('/locations', locationsRouter(db));
 
   app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });
