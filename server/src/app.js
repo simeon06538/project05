@@ -3,12 +3,14 @@ const { locationsRouter } = require('./routes/locations');
 const { usersRouter } = require('./routes/users');
 const { ordersRouter } = require('./routes/orders');
 const { couriersRouter } = require('./routes/couriers');
+const { cors } = require('./cors');
 const { errorHandler, notFound, validationError } = require('./errors');
 
 // Builds the Express app around a database handle so tests can pass an
 // in-memory DB.
-function createApp(db) {
+function createApp(db, { corsOrigin = '*' } = {}) {
   const app = express();
+  app.use(cors(corsOrigin));
   app.use(express.json({ limit: '10kb' }));
 
   // Routes can always read req.body as a plain object.
