@@ -13,7 +13,7 @@ server to install). It lives in [server/](server/).
 
 ### Requirements
 
-- Node.js 20 or newer (`node --version`)
+- Node.js 22 or newer (`node --version`)
 
 ### Start it
 
@@ -61,6 +61,19 @@ Set these as environment variables before `npm start` if you need to change them
 | `CORS_ORIGIN` | `*`                       | Allowed browser origins, comma-separated            |
 
 PowerShell example: `$env:PORT=4000; npm start`. Bash example: `PORT=4000 npm start`.
+
+### Resetting demo data
+
+Before recording the demo (or whenever test data piles up):
+
+```sh
+cd server
+npm run reset
+```
+
+This deletes all orders and any users created while testing, sets courier earnings
+back to $0, restarts ids at 1, and re-adds the demo locations and users. It works while
+the server is running; refresh the app afterwards.
 
 ### Tests
 
