@@ -1,0 +1,35 @@
+{
+    "name": "Campus Delivery",
+    "short_name": "Campus Delivery",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#120A24",
+    "theme_color": "#2A1650",
+    "description": "Campus food delivery: request a delivery or deliver orders around campus.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
