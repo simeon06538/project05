@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
@@ -7,7 +9,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/glass_panel.dart';
 
-/// C-14: customer status view. C-15 adds automatic refresh separately.
+/// Customer status view with foreground polling for active deliveries.
 class OrderTrackingScreen extends StatefulWidget {
   const OrderTrackingScreen({
     super.key,
@@ -23,7 +25,10 @@ class OrderTrackingScreen extends StatefulWidget {
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
 
-class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
+class _OrderTrackingScreenState extends State<OrderTrackingScreen>
+    with WidgetsBindingObserver {
+  Timer? _refreshTimer;
+  bool _foreground = true;
   late Order _order = widget.order;
   bool _loading = false;
   bool _missing = false;
@@ -32,11 +37,39 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.orderService != null) _refresh();
+  }
+
+  bool get _active =>
+      !_missing &&
+      _order.status != OrderStatus.delivered &&
+      _order.status != OrderStatus.cancelled;
+
+  void _scheduleRefresh() {
+    _refreshTimer?.cancel();
+    if (mounted && _foreground && _active && widget.orderService != null) {
+      _refreshTimer = Timer(const Duration(seconds: 5), _refresh);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    _refreshTimer?.cancel();
+    if (_foreground && _active) _refresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> _refresh() async {
     if (_loading || widget.orderService == null) return;
+    _refreshTimer?.cancel();
     setState(() {
       _loading = true;
       _error = null;
@@ -62,6 +95,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       }
     } finally {
       if (mounted) setState(() => _loading = false);
+      _scheduleRefresh();
     }
   }
 
@@ -138,6 +172,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     else
                       const Text(
                         'Sample status · Not connected to the delivery server',
+                      ),
+                    if (widget.orderService != null && _active)
+                      const Text(
+                        'Status refreshes automatically every 5 seconds.',
                       ),
                     if (_error != null) ...[
                       GlassPanel(

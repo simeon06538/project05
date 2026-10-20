@@ -36,7 +36,44 @@ void main() {
     tester.view.physicalSize = const Size(400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    addTearDown(() async => tester.pumpWidget(const SizedBox.shrink()));
   }
+
+  testWidgets(
+    'polls active deliveries, pauses in background, and stops on completion',
+    (tester) async {
+      phone(tester);
+      final service = _TrackingService();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OrderTrackingScreen(
+            order: service.current!,
+            customerId: 'customer-demo',
+            orderService: service,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(service.customers.length, 1);
+      service.current = service.current!.copyWith(status: OrderStatus.accepted);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      expect(service.customers.length, 2);
+      expect(find.textContaining('A courier has accepted'), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump(const Duration(seconds: 15));
+      expect(service.customers.length, 2);
+      service.current = service.current!.copyWith(
+        status: OrderStatus.delivered,
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(service.customers.length, 3);
+      await tester.pump(const Duration(seconds: 15));
+      expect(service.customers.length, 3);
+      expect(find.textContaining('Your delivery is complete'), findsOneWidget);
+    },
+  );
 
   Future<void> refresh(WidgetTester tester) async {
     await tester.ensureVisible(find.text('Refresh status'));
