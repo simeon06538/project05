@@ -12,7 +12,9 @@ import 'package:campus_delivery/services/mock_courier_service.dart';
 Future<void> runCourierFlow(WidgetTester tester) async {
   final service = MockCourierService(latency: Duration.zero);
   final order = (await service.fetchAvailableRequests()).first;
-  await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+  await tester.pumpWidget(
+    CampusDeliveryApp(showWelcome: false, courierService: service),
+  );
   await _settle(tester);
 
   // Available -> request details.

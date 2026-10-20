@@ -7,6 +7,11 @@ enum OrderStatus {
   delivered,
   cancelled;
 
+  String toJson() => this == pickedUp ? 'picked_up' : name;
+
+  static OrderStatus fromJson(String value) =>
+      value == 'picked_up' ? pickedUp : OrderStatus.values.byName(value);
+
   /// The status a courier can move this order to next, or null if none.
   OrderStatus? get next => switch (this) {
     OrderStatus.accepted => OrderStatus.pickedUp,
@@ -39,7 +44,7 @@ enum DeliveryProblem {
 
 /// A delivery request. Money is stored in cents to avoid rounding errors.
 ///
-/// Shared with the customer side; JSON (fromJson/toJson) is added in C-01.
+/// Shared with the customer side. API money uses dollars; the app uses cents.
 class Order {
   const Order({
     required this.id,
@@ -54,6 +59,8 @@ class Order {
     required this.pawPointsOrderNumber,
     required this.createdAt,
     required this.updatedAt,
+    this.pickupLocationName,
+    this.dropoffLocationName,
     this.acceptedAt,
     this.pickedUpAt,
     this.deliveredAt,
@@ -64,11 +71,51 @@ class Order {
     this.problemDetails,
   });
 
+  /// Reads the server response described in docs/api.md.
+  factory Order.fromJson(Map<String, dynamic> json) => Order(
+    id: (json['id'] as int).toString(),
+    customerId: (json['customerId'] as int).toString(),
+    courierId: (json['courierId'] as int?)?.toString(),
+    pickupLocation: json['pickupLocation'] as String,
+    dropoffLocation: json['dropoffLocation'] as String,
+    pickupLocationName: json['pickupLocationName'] as String?,
+    dropoffLocationName: json['dropoffLocationName'] as String?,
+    distanceMiles: (json['distanceMiles'] as num).toDouble(),
+    deliveryFeeCents: ((json['deliveryFee'] as num) * 100).round(),
+    tipCents: ((json['tip'] as num) * 100).round(),
+    status: OrderStatus.fromJson(json['status'] as String),
+    pawPointsOrderNumber: json['pawPointsOrderNumber'] as String,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    updatedAt: DateTime.parse(json['updatedAt'] as String),
+  );
+
+  /// Serializes the API model, not a POST /orders request body.
+  /// Demo-only string IDs cannot be sent to the real server.
+  Map<String, dynamic> toJson() => {
+    'id': int.parse(id),
+    'customerId': int.parse(customerId),
+    'courierId': courierId == null ? null : int.parse(courierId!),
+    'pickupLocation': pickupLocation,
+    'pickupLocationName': pickupLocationName,
+    'dropoffLocation': dropoffLocation,
+    'dropoffLocationName': dropoffLocationName,
+    'distanceMiles': distanceMiles,
+    'deliveryFee': deliveryFeeCents / 100,
+    'tip': tipCents / 100,
+    'totalPay': totalPayCents / 100,
+    'status': status.toJson(),
+    'pawPointsOrderNumber': pawPointsOrderNumber,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'updatedAt': updatedAt.toUtc().toIso8601String(),
+  };
+
   final String id;
   final String customerId;
   final String? courierId;
   final String pickupLocation;
   final String dropoffLocation;
+  final String? pickupLocationName;
+  final String? dropoffLocationName;
   final double distanceMiles;
   final int deliveryFeeCents;
   final int tipCents;
@@ -118,6 +165,8 @@ class Order {
     customerId: customerId,
     pickupLocation: pickupLocation,
     dropoffLocation: dropoffLocation,
+    pickupLocationName: pickupLocationName,
+    dropoffLocationName: dropoffLocationName,
     distanceMiles: distanceMiles,
     deliveryFeeCents: deliveryFeeCents,
     tipCents: tipCents,
@@ -146,6 +195,8 @@ class Order {
       courierId: courierId ?? this.courierId,
       pickupLocation: pickupLocation,
       dropoffLocation: dropoffLocation,
+      pickupLocationName: pickupLocationName,
+      dropoffLocationName: dropoffLocationName,
       distanceMiles: distanceMiles,
       deliveryFeeCents: deliveryFeeCents,
       tipCents: tipCents,

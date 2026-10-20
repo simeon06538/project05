@@ -18,7 +18,7 @@ Future<MockCourierService> _pumpApp(
   await tester.pumpWidget(
     MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
-      child: CampusDeliveryApp(courierService: service),
+      child: CampusDeliveryApp(showWelcome: false, courierService: service),
     ),
   );
   await tester.pump();

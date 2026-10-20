@@ -1,5 +1,14 @@
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'services/customer_order_service.dart';
+import 'services/mock_customer_order_service.dart';
+
+import 'models/user.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/customer/customer_home_screen.dart';
+
 import 'package:flutter/material.dart';
 
 import 'screens/courier/courier_home_screen.dart';
@@ -33,7 +42,15 @@ Future<void> main() async {
   service.seedHistory(demoCourierId);
   // Demo: open the app with ?demo=offline to see the error state (K-14).
   if (Uri.base.queryParameters['demo'] == 'offline') service.failNextCalls();
-  runApp(CampusDeliveryApp(courierService: service, prefs: prefs));
+  runApp(
+    CampusDeliveryApp(
+      courierService: service,
+      prefs: prefs,
+      customerOrderService: MockCustomerOrderService(
+        preferences: await SharedPreferences.getInstance(),
+      ),
+    ),
+  );
 }
 
 class CampusDeliveryApp extends StatefulWidget {
@@ -42,9 +59,15 @@ class CampusDeliveryApp extends StatefulWidget {
     required this.courierService,
     this.highContrast,
     this.prefs,
+    this.showWelcome = true,
+    this.customerOrderService,
   });
 
   final CourierService courierService;
+  final CustomerOrderService? customerOrderService;
+
+  /// False only for tests that exercise the courier home directly.
+  final bool showWelcome;
 
   /// K-42: lets tests start in high contrast; the app makes its own.
   final ValueNotifier<bool>? highContrast;
@@ -57,6 +80,16 @@ class CampusDeliveryApp extends StatefulWidget {
 }
 
 class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
+  late bool _choosingRole = widget.showWelcome;
+  late UserRole _role = widget.showWelcome
+      ? UserRole.customer
+      : UserRole.courier;
+  late String _name = widget.prefs?.name ?? '';
+  late final _customerService =
+      widget.customerOrderService ?? MockCustomerOrderService();
+
+  void _switchRole() => setState(() => _choosingRole = true);
+
   late bool _showIntro = widget.prefs != null && !widget.prefs!.onboardingDone;
 
   late final _highContrast =
@@ -86,9 +119,31 @@ class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
           ),
           child: child!,
         ),
-        // TODO(C-02): replace with the role-selection screen once it exists.
+        // C-02: choose a role before entering either demo flow.
         // K-44: the intro comes first, once, when settings are saved.
-        home: _showIntro
+        home: _choosingRole
+            ? WelcomeScreen(
+                initialName: _name,
+                initialRole: _name.isEmpty ? UserRole.customer : _role,
+                onContinue: (name, role) {
+                  widget.prefs?.setName(name);
+                  setState(() {
+                    _name = name;
+                    _role = role;
+                    _choosingRole = false;
+                  });
+                },
+              )
+            : _role == UserRole.customer
+            ? CustomerHomeScreen(
+                name: _name,
+                onSwitchRole: _switchRole,
+                orders: const [],
+                isSampleData: false,
+                orderService: _customerService,
+                customerId: 'demo-customer:${_name.trim().toLowerCase()}',
+              )
+            : _showIntro
             ? OnboardingScreen(
                 onDone: () {
                   widget.prefs?.setOnboardingDone(true);
@@ -98,7 +153,8 @@ class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
             : CourierHomeScreen(
                 service: widget.courierService,
                 courierId: demoCourierId,
-                courierName: demoCourierName,
+                courierName: _name.isEmpty ? demoCourierName : _name,
+                onSwitchRole: widget.showWelcome ? _switchRole : null,
                 prefs: widget.prefs,
               ),
       ),

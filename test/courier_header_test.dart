@@ -43,6 +43,7 @@ void main() {
   testWidgets('home screen shows the demo courier header', (tester) async {
     await tester.pumpWidget(
       CampusDeliveryApp(
+        showWelcome: false,
         courierService: MockCourierService(latency: Duration.zero),
       ),
     );

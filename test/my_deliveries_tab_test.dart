@@ -67,7 +67,9 @@ void main() {
   ) async {
     final service = MockCourierService(latency: Duration.zero);
     final order = (await service.fetchAvailableRequests()).first;
-    await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+    await tester.pumpWidget(
+      CampusDeliveryApp(showWelcome: false, courierService: service),
+    );
     await tester.pump();
 
     // Accept while the app is open, then come back to the Available tab

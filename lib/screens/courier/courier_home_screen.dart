@@ -24,11 +24,15 @@ class CourierHomeScreen extends StatefulWidget {
     required this.courierId,
     this.courierName = 'Courier',
     this.prefs,
+    this.onSwitchRole,
     this.idleTimeout = const Duration(minutes: 20),
     this.stillThereGrace = const Duration(seconds: 60),
   });
 
   final CourierService service;
+
+  /// C-02: return to role selection without resetting delivery data.
+  final VoidCallback? onSwitchRole;
 
   /// The signed-in courier. Comes from the login screen once C-02 exists.
   final String courierId;
@@ -165,6 +169,15 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (widget.onSwitchRole != null)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: widget.onSwitchRole,
+                            icon: const Icon(Icons.swap_horiz),
+                            label: const Text('Switch role'),
+                          ),
+                        ),
                       CourierHeader(
                         name: _name,
                         onOpenSettings: _openSettings,

@@ -38,6 +38,7 @@ void main() {
     final calls = _recordHaptics(tester);
     await tester.pumpWidget(
       CampusDeliveryApp(
+        showWelcome: false,
         courierService: MockCourierService(latency: Duration.zero),
       ),
     );

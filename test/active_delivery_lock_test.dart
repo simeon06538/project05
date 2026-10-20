@@ -76,7 +76,10 @@ void main() {
 
   testWidgets('"View" on the banner switches to My Deliveries', (tester) async {
     await tester.pumpWidget(
-      CampusDeliveryApp(courierService: await _busyService(demoCourierId)),
+      CampusDeliveryApp(
+        showWelcome: false,
+        courierService: await _busyService(demoCourierId),
+      ),
     );
     await tester.pump();
     expect(find.text('Delivery in progress'), findsOneWidget);
