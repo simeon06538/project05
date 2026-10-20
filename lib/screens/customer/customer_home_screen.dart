@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import 'request_delivery_screen.dart';
+import 'order_tracking_screen.dart';
 import '../../services/customer_order_service.dart';
 import '../../services/api_customer_order_service.dart';
 import '../../theme/app_theme.dart';
@@ -82,6 +83,28 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     if (mounted && order != null && widget.orderService != null) {
       setState(() => _tab = 0);
       await _reload();
+    }
+  }
+
+  Future<void> _track(Order order) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => OrderTrackingScreen(
+          order: order,
+          customerId: widget.customerId,
+          orderService: widget.orderService,
+        ),
+      ),
+    );
+    if (!mounted || widget.orderService == null) return;
+    await _reload();
+    if (!mounted) return;
+    final updated = _savedOrders
+        .where((entry) => entry.id == order.id)
+        .firstOrNull;
+    if (updated?.status == OrderStatus.delivered ||
+        updated?.status == OrderStatus.cancelled) {
+      setState(() => _tab = 1);
     }
   }
 
@@ -242,6 +265,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     for (final order in orders) ...[
                       _CustomerOrderCard(
                         order: order,
+                        onTrack: () => _track(order),
                         onDelete:
                             widget.orderService != null &&
                                 order.status == OrderStatus.requested
@@ -267,8 +291,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 }
 
 class _CustomerOrderCard extends StatelessWidget {
-  const _CustomerOrderCard({required this.order, this.onDelete});
+  const _CustomerOrderCard({
+    required this.order,
+    required this.onTrack,
+    this.onDelete,
+  });
   final Order order;
+  final VoidCallback onTrack;
   final VoidCallback? onDelete;
 
   @override
@@ -280,48 +309,60 @@ class _CustomerOrderCard extends StatelessWidget {
       OrderStatus.delivered => 'Delivered',
       OrderStatus.cancelled => 'Cancelled',
     };
-    return GlassPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (order.id.contains(':sample-')) const Text('Sample order'),
-          Text(
-            status,
-            style: const TextStyle(
-              color: AppColors.accentSoft,
-              fontWeight: FontWeight.w600,
-            ),
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTrack,
+        borderRadius: BorderRadius.circular(18),
+        child: GlassPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (order.id.contains(':sample-')) const Text('Sample order'),
+              Text(
+                status,
+                style: const TextStyle(
+                  color: AppColors.accentSoft,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Tap to track delivery'),
+              const SizedBox(height: 12),
+              if (order.orderName != null)
+                Text('Order name: ${order.orderName}'),
+              if (order.pickupRestaurant != null)
+                Text('Restaurant: ${order.pickupRestaurant}'),
+              Text(
+                'Pickup: ${order.pickupLocationName ?? order.pickupLocation}',
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Deliver to: ${order.dropoffLocationName ?? order.dropoffLocation}',
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Paw Points order: ${order.pawPointsOrderNumber}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const Divider(height: 24),
+              Text(
+                'Delivery fee ${formatCents(order.deliveryFeeCents)}  +  Tip ${formatCents(order.tipCents)}',
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Delivery total ${formatCents(order.totalPayCents)}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              if (onDelete != null)
+                TextButton.icon(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete request'),
+                ),
+            ],
           ),
-          const SizedBox(height: 12),
-          if (order.orderName != null) Text('Order name: ${order.orderName}'),
-          if (order.pickupRestaurant != null)
-            Text('Restaurant: ${order.pickupRestaurant}'),
-          Text('Pickup: ${order.pickupLocationName ?? order.pickupLocation}'),
-          const SizedBox(height: 6),
-          Text(
-            'Deliver to: ${order.dropoffLocationName ?? order.dropoffLocation}',
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Paw Points order: ${order.pawPointsOrderNumber}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const Divider(height: 24),
-          Text(
-            'Delivery fee ${formatCents(order.deliveryFeeCents)}  +  Tip ${formatCents(order.tipCents)}',
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Delivery total ${formatCents(order.totalPayCents)}',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          if (onDelete != null)
-            TextButton.icon(
-              onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Delete request'),
-            ),
-        ],
+        ),
       ),
     );
   }
