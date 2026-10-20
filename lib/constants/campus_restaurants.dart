@@ -1,4 +1,5 @@
-/// Restaurant/building groupings from the user's LSU Dining screenshots.
+/// Restaurant/building groupings from the user's LSU Dining screenshots
+/// and their Panera location at Patrick F. Taylor Hall (PFT).
 /// Hours and availability remain in LSU Dining, not this delivery demo.
 class CampusRestaurant {
   const CampusRestaurant(this.name, this.pickupLocationId);
@@ -31,4 +32,5 @@ const campusRestaurants = <CampusRestaurant>[
   CampusRestaurant('CCs Library', 'middleton-library'),
   CampusRestaurant('PJs Coffee · Vet School', 'vet-school'),
   CampusRestaurant('City Sub', 'foster-hall'),
+  CampusRestaurant('Panera Bread', 'patrick-taylor-hall'),
 ];

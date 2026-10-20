@@ -54,6 +54,52 @@ void main() {
   }
 
   testWidgets(
+    'pickup offers only food buildings, dropoff keeps housing, and Panera sets PFT',
+    (tester) async {
+      await open(tester);
+      final fields = tester
+          .widgetList<DropdownButton<String>>(
+            find.byType(DropdownButton<String>),
+          )
+          .toList();
+      final pickupIds = fields.first.items!.map((item) => item.value).toSet();
+      expect(
+        pickupIds,
+        campusRestaurants.map((r) => r.pickupLocationId).toSet(),
+      );
+      expect(pickupIds, isNot(contains('lejeune-hall')));
+      expect(
+        fields.last.items!.map((item) => item.value),
+        containsAll(campusLocations.map((location) => location.id)),
+      );
+      final picker = find.byKey(const ValueKey('restaurant-picker'));
+      await tester.ensureVisible(picker);
+      await tester.pumpAndSettle();
+      await tester.tap(picker);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Panera Bread'),
+        180,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Panera Bread').last);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .state<FormFieldState<String>>(
+              find.byType(DropdownButtonFormField<String>).first,
+            )
+            .value,
+        'patrick-taylor-hall',
+      );
+      expect(
+        find.textContaining('miles from Patrick F. Taylor Hall'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
     'restaurant dropdown changes pickup and miles, including switching back to Union',
     (tester) async {
       await open(tester);

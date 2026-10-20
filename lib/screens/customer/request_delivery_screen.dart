@@ -131,6 +131,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
     required ValueChanged<String?> onChanged,
     required GlobalKey<FormFieldState<String>> fieldKey,
     required FormFieldValidator<String> validator,
+    Iterable<CampusLocation> locations = campusLocations,
   }) => DropdownButtonFormField<String>(
     key: fieldKey,
     validator: validator,
@@ -138,7 +139,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
     decoration: InputDecoration(labelText: label),
     isExpanded: true,
     items: [
-      for (final location in campusLocations)
+      for (final location in locations)
         DropdownMenuItem(
           value: location.id,
           child: Text(location.name, overflow: TextOverflow.ellipsis),
@@ -265,6 +266,12 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
                           const SizedBox(height: 16),
                           _locationField(
                             label: 'Pickup location',
+                            locations: campusLocations.where(
+                              (location) => campusRestaurants.any(
+                                (restaurant) =>
+                                    restaurant.pickupLocationId == location.id,
+                              ),
+                            ),
                             fieldKey: _pickupKey,
                             validator: (value) =>
                                 _required(value, 'Choose a pickup location'),
