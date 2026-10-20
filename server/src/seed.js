@@ -4,11 +4,12 @@ const seedData = require('./seed-data');
 // Demo users are only added to an empty users table, so real sign-ups are kept.
 function seed(db) {
   const upsertLocation = db.prepare(`
-    INSERT INTO locations (id, name, distance_from_union_miles)
-    VALUES (@id, @name, @distanceFromUnionMiles)
+    INSERT INTO locations (id, name, distance_from_union_miles, demo_x_miles, demo_y_miles, category)
+    VALUES (@id, @name, @distanceFromUnionMiles, @demoXMiles, @demoYMiles, @category)
     ON CONFLICT (id) DO UPDATE SET
       name = excluded.name,
-      distance_from_union_miles = excluded.distance_from_union_miles
+      distance_from_union_miles = excluded.distance_from_union_miles,
+      demo_x_miles = excluded.demo_x_miles, demo_y_miles = excluded.demo_y_miles, category = excluded.category
   `);
   const insertUser = db.prepare(`
     INSERT INTO users (name, email, role, created_at)

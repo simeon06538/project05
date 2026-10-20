@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import 'request_delivery_screen.dart';
 import '../../services/customer_order_service.dart';
+import '../../services/api_customer_order_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_background.dart';
 import '../../widgets/empty_state.dart';
@@ -55,8 +56,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     try {
       final orders = await widget.orderService!.fetchOrders(widget.customerId);
       if (mounted) setState(() => _savedOrders = orders);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Could not load saved demo orders.');
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = error is CustomerApiException
+              ? error.message
+              : 'Could not load saved demo orders.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -191,8 +198,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   ],
                   if (widget.orderService != null) ...[
                     const SizedBox(height: 6),
-                    const Text(
-                      'Demo orders · Saved on this device, not sent to couriers',
+                    Text(
+                      widget.orderService!.isServerBacked
+                          ? 'Server mode · Demo payments only'
+                          : 'Demo orders · Saved on this device, not sent to couriers',
                     ),
                     TextButton.icon(
                       onPressed: _loading ? null : _reload,
@@ -235,7 +244,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         order: order,
                         onDelete:
                             widget.orderService != null &&
-                                order.customerId == widget.customerId &&
                                 order.status == OrderStatus.requested
                             ? () => _delete(order)
                             : null,
@@ -285,6 +293,9 @@ class _CustomerOrderCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          if (order.orderName != null) Text('Order name: ${order.orderName}'),
+          if (order.pickupRestaurant != null)
+            Text('Restaurant: ${order.pickupRestaurant}'),
           Text('Pickup: ${order.pickupLocationName ?? order.pickupLocation}'),
           const SizedBox(height: 6),
           Text(

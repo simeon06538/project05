@@ -1,4 +1,4 @@
-// Delivery fee: $2.00 base + $0.50 per started 0.25 mi from the Union, capped at $6.00.
+// Delivery fee: $2.00 base + $0.50 per started 0.25 mi of estimated delivery distance, capped at $6.00.
 // Everything is in integer cents. Must match the client's lib/services/pricing.dart.
 const BASE_FEE_CENTS = 200;
 const STEP_FEE_CENTS = 50;
@@ -25,3 +25,12 @@ function tipToCents(tip) {
 }
 
 module.exports = { deliveryFeeCents, tipToCents, MAX_TIP_CENTS };
+
+// Coarse straight-line demo estimate, rounded identically by the Dart client.
+function routeDistanceMiles(pickup, dropoff) {
+  if (pickup.id === 'union') return dropoff.distance_from_union_miles;
+  if (dropoff.id === 'union') return pickup.distance_from_union_miles;
+  return Number(Math.hypot(dropoff.demo_x_miles - pickup.demo_x_miles,
+    dropoff.demo_y_miles - pickup.demo_y_miles).toFixed(3));
+}
+module.exports.routeDistanceMiles = routeDistanceMiles;

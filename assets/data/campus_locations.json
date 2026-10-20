@@ -1,0 +1,425 @@
+[
+  {
+    "id": "union",
+    "name": "LSU Student Union",
+    "distanceFromUnionMiles": 0.0,
+    "demoXMiles": 0,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "middleton-library",
+    "name": "Middleton Library",
+    "distanceFromUnionMiles": 0.2,
+    "demoXMiles": -0.2,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "the-5",
+    "name": "The 5 Dining Hall",
+    "distanceFromUnionMiles": 0.3,
+    "demoXMiles": -0.3,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "pentagon",
+    "name": "Pentagon Community",
+    "distanceFromUnionMiles": 0.35,
+    "demoXMiles": -0.35,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "patrick-taylor-hall",
+    "name": "Patrick F. Taylor Hall",
+    "distanceFromUnionMiles": 0.4,
+    "demoXMiles": 0,
+    "demoYMiles": -0.4,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "tiger-stadium",
+    "name": "Tiger Stadium",
+    "distanceFromUnionMiles": 0.45,
+    "demoXMiles": -0.45,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "pmac",
+    "name": "Pete Maravich Assembly Center",
+    "distanceFromUnionMiles": 0.5,
+    "demoXMiles": -0.5,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "459-commons",
+    "name": "459 Commons",
+    "distanceFromUnionMiles": 0.6,
+    "demoXMiles": 0.6,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "east-campus-apts",
+    "name": "East Campus Apartments",
+    "distanceFromUnionMiles": 0.7,
+    "demoXMiles": 0.7,
+    "demoYMiles": 0,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "urec",
+    "name": "UREC Student Recreation Center",
+    "distanceFromUnionMiles": 0.9,
+    "demoXMiles": 0.9,
+    "demoYMiles": 0,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "west-campus-apts",
+    "name": "West Campus Apartments",
+    "distanceFromUnionMiles": 1.0,
+    "demoXMiles": -1,
+    "demoYMiles": 0,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "nicholson-gateway",
+    "name": "Nicholson Gateway Apartments",
+    "distanceFromUnionMiles": 1.1,
+    "demoXMiles": -1.1,
+    "demoYMiles": 0,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "acadian-hall",
+    "name": "Acadian Hall",
+    "distanceFromUnionMiles": 0.456,
+    "demoXMiles": 0.44,
+    "demoYMiles": -0.12,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "annie-boyd-hall",
+    "name": "Annie Boyd Hall",
+    "distanceFromUnionMiles": 0.155,
+    "demoXMiles": 0.15,
+    "demoYMiles": 0.04,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "azalea-hall",
+    "name": "Azalea Hall",
+    "distanceFromUnionMiles": 0.73,
+    "demoXMiles": 0.72,
+    "demoYMiles": 0.12,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "beauregard-hall",
+    "name": "Pentagon · Beauregard Hall",
+    "distanceFromUnionMiles": 0.361,
+    "demoXMiles": -0.36,
+    "demoYMiles": 0.03,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/halls/pentagon.php"
+  },
+  {
+    "id": "blake-hall",
+    "name": "Blake Hall",
+    "distanceFromUnionMiles": 0.543,
+    "demoXMiles": 0.54,
+    "demoYMiles": -0.06,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "broussard-hall",
+    "name": "Broussard Hall",
+    "distanceFromUnionMiles": 0.32,
+    "demoXMiles": -0.31,
+    "demoYMiles": 0.08,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "camellia-hall",
+    "name": "Camellia Hall",
+    "distanceFromUnionMiles": 0.757,
+    "demoXMiles": 0.75,
+    "demoYMiles": 0.1,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "cedar-hall",
+    "name": "Cedar Hall",
+    "distanceFromUnionMiles": 0.434,
+    "demoXMiles": -0.43,
+    "demoYMiles": 0.06,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "cypress-hall",
+    "name": "Cypress Hall",
+    "distanceFromUnionMiles": 0.408,
+    "demoXMiles": -0.39,
+    "demoYMiles": 0.12,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "east-laville-hall",
+    "name": "East Laville Hall",
+    "distanceFromUnionMiles": 0.418,
+    "demoXMiles": 0.39,
+    "demoYMiles": -0.15,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "evangeline-hall",
+    "name": "Evangeline Hall",
+    "distanceFromUnionMiles": 0.228,
+    "demoXMiles": 0.22,
+    "demoYMiles": 0.06,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "herget-hall",
+    "name": "Herget Hall",
+    "distanceFromUnionMiles": 0.826,
+    "demoXMiles": 0.82,
+    "demoYMiles": -0.1,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "highland-hall",
+    "name": "Highland Hall",
+    "distanceFromUnionMiles": 0.263,
+    "demoXMiles": 0.26,
+    "demoYMiles": 0.04,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "jackson-hall",
+    "name": "Pentagon · Jackson Hall",
+    "distanceFromUnionMiles": 0.371,
+    "demoXMiles": -0.37,
+    "demoYMiles": 0.02,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/halls/pentagon.php"
+  },
+  {
+    "id": "lejeune-hall",
+    "name": "Pentagon · LeJeune Hall",
+    "distanceFromUnionMiles": 0.355,
+    "demoXMiles": -0.35,
+    "demoYMiles": 0.06,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/halls/pentagon.php"
+  },
+  {
+    "id": "mcvoy-hall",
+    "name": "McVoy Hall",
+    "distanceFromUnionMiles": 0.65,
+    "demoXMiles": 0.63,
+    "demoYMiles": -0.16,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "miller-hall",
+    "name": "Miller Hall",
+    "distanceFromUnionMiles": 0.86,
+    "demoXMiles": 0.86,
+    "demoYMiles": -0.02,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "north-hall",
+    "name": "North Hall",
+    "distanceFromUnionMiles": 0.518,
+    "demoXMiles": -0.51,
+    "demoYMiles": 0.09,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "south-hall",
+    "name": "South Hall",
+    "distanceFromUnionMiles": 0.52,
+    "demoXMiles": -0.52,
+    "demoYMiles": 0.02,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "spruce-hall",
+    "name": "Spruce Hall",
+    "distanceFromUnionMiles": 0.401,
+    "demoXMiles": -0.4,
+    "demoYMiles": 0.03,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "taylor-hall",
+    "name": "Pentagon · Taylor Hall",
+    "distanceFromUnionMiles": 0.331,
+    "demoXMiles": -0.33,
+    "demoYMiles": 0.03,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/halls/pentagon.php"
+  },
+  {
+    "id": "west-hall",
+    "name": "West Hall",
+    "distanceFromUnionMiles": 0.562,
+    "demoXMiles": -0.56,
+    "demoYMiles": 0.05,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "west-laville-hall",
+    "name": "West Laville Hall",
+    "distanceFromUnionMiles": 0.372,
+    "demoXMiles": 0.34,
+    "demoYMiles": -0.15,
+    "category": "residence_hall",
+    "sourceUrl": "https://www.lsu.edu/housing/options/at-a-glance.php"
+  },
+  {
+    "id": "nicholson-bayou",
+    "name": "Nicholson Gateway · Bayou Hall",
+    "distanceFromUnionMiles": 1.122,
+    "demoXMiles": -1.12,
+    "demoYMiles": 0.06,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-canal",
+    "name": "Nicholson Gateway · Canal Hall",
+    "distanceFromUnionMiles": 1.124,
+    "demoXMiles": -1.12,
+    "demoYMiles": -0.1,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-delta",
+    "name": "Nicholson Gateway · Delta Hall",
+    "distanceFromUnionMiles": 1.08,
+    "demoXMiles": -1.08,
+    "demoYMiles": 0.03,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-gulf",
+    "name": "Nicholson Gateway · Gulf Hall",
+    "distanceFromUnionMiles": 1.07,
+    "demoXMiles": -1.07,
+    "demoYMiles": 0,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-marsh",
+    "name": "Nicholson Gateway · Marsh Hall",
+    "distanceFromUnionMiles": 1.131,
+    "demoXMiles": -1.1300000000000001,
+    "demoYMiles": 0.04,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-oxbow",
+    "name": "Nicholson Gateway · Oxbow Hall",
+    "distanceFromUnionMiles": 1.07,
+    "demoXMiles": -1.07,
+    "demoYMiles": -0.03,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "nicholson-riverbend",
+    "name": "Nicholson Gateway · Riverbend Hall",
+    "distanceFromUnionMiles": 1.108,
+    "demoXMiles": -1.1,
+    "demoYMiles": -0.13,
+    "category": "apartment",
+    "sourceUrl": "https://www.lsu.edu/housing/files/loc_handbook/loc_handbook.pdf"
+  },
+  {
+    "id": "art-design-building",
+    "name": "Art & Design Building",
+    "distanceFromUnionMiles": 0.197,
+    "demoXMiles": -0.08,
+    "demoYMiles": -0.18,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "law-center",
+    "name": "Paul M. Hebert Law Center",
+    "distanceFromUnionMiles": 0.219,
+    "demoXMiles": 0.15,
+    "demoYMiles": -0.16,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "business-education-complex",
+    "name": "Business Education Complex",
+    "distanceFromUnionMiles": 0.49,
+    "demoXMiles": 0.1,
+    "demoYMiles": -0.48,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "foster-hall",
+    "name": "Foster Hall",
+    "distanceFromUnionMiles": 0.2,
+    "demoXMiles": -0.16,
+    "demoYMiles": 0.12,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  },
+  {
+    "id": "vet-school",
+    "name": "School of Veterinary Medicine",
+    "distanceFromUnionMiles": 1.355,
+    "demoXMiles": -1.35,
+    "demoYMiles": -0.12,
+    "category": "campus",
+    "sourceUrl": "https://map.lsu.edu/"
+  }
+]

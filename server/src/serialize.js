@@ -29,6 +29,8 @@ function orderToJson(row) {
     totalPay: toDollars(row.total_pay_cents),
     status: row.status,
     pawPointsOrderNumber: row.paw_points_order_number,
+    orderName: row.order_name,
+    pickupRestaurant: row.pickup_restaurant,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

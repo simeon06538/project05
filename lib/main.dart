@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/customer_order_service.dart';
+import 'services/api_customer_order_service.dart';
 import 'services/mock_customer_order_service.dart';
 
 import 'models/user.dart';
@@ -42,13 +43,15 @@ Future<void> main() async {
   service.seedHistory(demoCourierId);
   // Demo: open the app with ?demo=offline to see the error state (K-14).
   if (Uri.base.queryParameters['demo'] == 'offline') service.failNextCalls();
+  final customerPreferences = await SharedPreferences.getInstance();
+  const useMock = bool.fromEnvironment('USE_MOCK_CUSTOMER_API');
   runApp(
     CampusDeliveryApp(
       courierService: service,
       prefs: prefs,
-      customerOrderService: MockCustomerOrderService(
-        preferences: await SharedPreferences.getInstance(),
-      ),
+      customerOrderService: useMock
+          ? MockCustomerOrderService(preferences: customerPreferences)
+          : ApiCustomerOrderService(preferences: customerPreferences),
     ),
   );
 }

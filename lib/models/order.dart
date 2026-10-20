@@ -59,6 +59,8 @@ class Order {
     required this.pawPointsOrderNumber,
     required this.createdAt,
     required this.updatedAt,
+    this.orderName,
+    this.pickupRestaurant,
     this.pickupLocationName,
     this.dropoffLocationName,
     this.acceptedAt,
@@ -78,6 +80,8 @@ class Order {
     courierId: (json['courierId'] as int?)?.toString(),
     pickupLocation: json['pickupLocation'] as String,
     dropoffLocation: json['dropoffLocation'] as String,
+    orderName: json['orderName'] as String?,
+    pickupRestaurant: json['pickupRestaurant'] as String?,
     pickupLocationName: json['pickupLocationName'] as String?,
     dropoffLocationName: json['dropoffLocationName'] as String?,
     distanceMiles: (json['distanceMiles'] as num).toDouble(),
@@ -92,6 +96,8 @@ class Order {
   /// Serializes the API model, not a POST /orders request body.
   /// Demo-only string IDs cannot be sent to the real server.
   Map<String, dynamic> toJson() => {
+    if (orderName != null) 'orderName': orderName,
+    if (pickupRestaurant != null) 'pickupRestaurant': pickupRestaurant,
     'id': int.parse(id),
     'customerId': int.parse(customerId),
     'courierId': courierId == null ? null : int.parse(courierId!),
@@ -109,6 +115,8 @@ class Order {
     'updatedAt': updatedAt.toUtc().toIso8601String(),
   };
 
+  final String? orderName;
+  final String? pickupRestaurant;
   final String id;
   final String customerId;
   final String? courierId;
@@ -165,6 +173,8 @@ class Order {
     customerId: customerId,
     pickupLocation: pickupLocation,
     dropoffLocation: dropoffLocation,
+    orderName: orderName,
+    pickupRestaurant: pickupRestaurant,
     pickupLocationName: pickupLocationName,
     dropoffLocationName: dropoffLocationName,
     distanceMiles: distanceMiles,
@@ -195,6 +205,8 @@ class Order {
       courierId: courierId ?? this.courierId,
       pickupLocation: pickupLocation,
       dropoffLocation: dropoffLocation,
+      orderName: orderName,
+      pickupRestaurant: pickupRestaurant,
       pickupLocationName: pickupLocationName,
       dropoffLocationName: dropoffLocationName,
       distanceMiles: distanceMiles,

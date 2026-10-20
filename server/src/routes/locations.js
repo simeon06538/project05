@@ -5,9 +5,9 @@ function locationsRouter(db) {
 
   router.get('/', (req, res) => {
     const rows = db
-      .prepare('SELECT id, name, distance_from_union_miles FROM locations ORDER BY distance_from_union_miles, name')
+      .prepare('SELECT * FROM locations ORDER BY distance_from_union_miles, name')
       .all();
-    res.json(rows.map((r) => ({ id: r.id, name: r.name, distanceFromUnionMiles: r.distance_from_union_miles })));
+    res.json(rows.map((r) => ({ id: r.id, name: r.name, distanceFromUnionMiles: r.distance_from_union_miles, demoXMiles: r.demo_x_miles, demoYMiles: r.demo_y_miles, category: r.category })));
   });
 
   return router;

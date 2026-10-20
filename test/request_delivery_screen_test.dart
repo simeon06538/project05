@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:campus_delivery/constants/campus_locations.dart';
 import 'package:campus_delivery/screens/customer/request_delivery_screen.dart';
@@ -7,25 +8,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('preview destinations match the existing server locations', () {
-    final seed = File('server/src/seed-data.js').readAsStringSync();
-    final rows = RegExp(
-      r"\{ id: '([^']+)', name: '([^']+)', distanceFromUnionMiles: ([\d.]+) \}",
-    ).allMatches(seed);
-    expect(campusLocations.length, 12);
-    expect(
-      campusLocations
-          .map(
-            (location) => [
-              location.id,
-              location.name,
-              location.distanceFromUnionMiles,
-            ],
-          )
-          .toList(),
-      rows.map((row) => [row[1], row[2], double.parse(row[3]!)]).toList(),
-    );
-  });
+  test(
+    'Flutter catalog matches the server shared JSON including demo offsets',
+    () {
+      final rows = (jsonDecode(
+        File('assets/data/campus_locations.json').readAsStringSync(),
+      ) as List);
+      expect(campusLocations.length, rows.length);
+      for (var i = 0; i < rows.length; i++) {
+        expect(campusLocations[i].id, rows[i]['id']);
+        expect(campusLocations[i].name, rows[i]['name']);
+        expect(
+          campusLocations[i].distanceFromUnionMiles,
+          rows[i]['distanceFromUnionMiles'],
+        );
+        expect(campusLocations[i].demoXMiles, rows[i]['demoXMiles']);
+        expect(campusLocations[i].demoYMiles, rows[i]['demoYMiles']);
+      }
+      expect(
+        campusLocations
+            .where((location) => location.category == 'residence_hall')
+            .length,
+        23,
+      );
+      expect(
+        campusLocations.any((location) => location.id == 'crane-hall'),
+        isFalse,
+      );
+    },
+  );
 
   testWidgets('edits order details and locations without losing typed values', (
     tester,

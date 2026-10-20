@@ -2,7 +2,7 @@ const express = require('express');
 const { Checker, parseIdParam } = require('../validate');
 const { conflict, forbidden, notFound } = require('../errors');
 const { orderToJson } = require('../serialize');
-const { deliveryFeeCents, tipToCents } = require('../pricing');
+const { deliveryFeeCents, tipToCents, routeDistanceMiles } = require('../pricing');
 const { getUser } = require('./users');
 const { STATUSES, canTransition, ACTOR_FOR_STATUS } = require('../status');
 
@@ -21,6 +21,8 @@ function ordersRouter(db) {
     const body = req.body;
     const check = new Checker();
     const customerId = check.id(body.customerId, 'customerId');
+    const orderName = check.string(body.orderName, 'orderName', { optional: true });
+    const pickupRestaurant = check.string(body.pickupRestaurant, 'pickupRestaurant', { optional: true });
     const pickupId = check.string(body.pickupLocation, 'pickupLocation', { max: 64 });
     const dropoffId = check.string(body.dropoffLocation, 'dropoffLocation', { max: 64 });
     const pawPointsOrderNumber = check.string(body.pawPointsOrderNumber, 'pawPointsOrderNumber', { max: 40 });
@@ -39,19 +41,36 @@ function ordersRouter(db) {
     if (!customer || customer.role !== 'customer') throw notFound(`Customer ${customerId} not found`);
 
     // Fee is always recalculated here; any fee/total the client sent is ignored.
-    const distanceMiles = dropoff.distance_from_union_miles;
+    const distanceMiles = routeDistanceMiles(pickup, dropoff);
     const feeCents = deliveryFeeCents(distanceMiles);
     const now = new Date().toISOString();
     const { lastInsertRowid } = db
       .prepare(`
         INSERT INTO orders (customer_id, pickup_location_id, dropoff_location_id, distance_miles,
-          delivery_fee_cents, tip_cents, total_pay_cents, status, paw_points_order_number, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'requested', ?, ?, ?)
+          delivery_fee_cents, tip_cents, total_pay_cents, status, paw_points_order_number, created_at, updated_at, order_name, pickup_restaurant)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?)
       `)
       .run(customerId, pickup.id, dropoff.id, distanceMiles, feeCents, tipCents, feeCents + tipCents,
-        pawPointsOrderNumber, now, now);
+        pawPointsOrderNumber, now, now, orderName, pickupRestaurant);
 
     res.status(201).json(orderToJson(getOrder(db, Number(lastInsertRowid))));
+  });
+
+  // Ownership/status check and deletion share one write transaction.
+  const deleteRequested = db.transaction((orderId, customerId) => {
+    const order = getOrder(db, orderId);
+    if (!order) throw notFound(`Order ${orderId} not found`);
+    if (order.customer_id !== customerId) throw forbidden('This request belongs to another customer');
+    if (order.status !== 'requested') throw conflict('invalid_transition', 'Only waiting requests can be deleted');
+    db.prepare('DELETE FROM orders WHERE id = ? AND customer_id = ? AND status = ?').run(orderId, customerId, 'requested');
+  });
+  router.delete('/:id', (req, res) => {
+    const orderId = parseIdParam(req.params.id);
+    const check = new Checker();
+    const customerId = check.id(req.body.customerId, 'customerId');
+    check.done();
+    deleteRequested.immediate(orderId, customerId);
+    res.status(204).end();
   });
 
   // Filters: ?customerId=1, ?courierId=3, ?status=requested or status=accepted,picked_up.

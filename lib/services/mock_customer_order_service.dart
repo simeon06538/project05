@@ -10,6 +10,8 @@ import 'sample_customer_orders.dart';
 /// C-12: local demo storage. This service never contacts the server/couriers.
 /// Customer IDs are demo identities, not authenticated accounts.
 class MockCustomerOrderService implements CustomerOrderService {
+  @override
+  bool get isServerBacked => false;
   MockCustomerOrderService({
     this.preferences,
     this.seedExamples = true,
@@ -108,12 +110,14 @@ class MockCustomerOrderService implements CustomerOrderService {
         final order = Order(
           id: 'demo-${now.microsecondsSinceEpoch}-${_sequence++}',
           customerId: customerId,
+          orderName: draft.orderName.trim(),
+          pickupRestaurant: draft.restaurant.trim(),
           pickupLocation: draft.pickup.id,
           pickupLocationName:
               '${draft.pickup.name} · ${draft.restaurant.trim()}',
           dropoffLocation: draft.dropoff.id,
           dropoffLocationName: draft.dropoff.name,
-          distanceMiles: draft.dropoff.distanceFromUnionMiles,
+          distanceMiles: draft.distanceMiles,
           deliveryFeeCents: draft.feeCents,
           tipCents: draft.tipCents,
           status: OrderStatus.requested,
@@ -156,6 +160,8 @@ class MockCustomerOrderService implements CustomerOrderService {
 
   // Local format preserves demo string IDs without changing the server model.
   static Map<String, dynamic> _encode(Order order) => {
+    'orderName': order.orderName,
+    'pickupRestaurant': order.pickupRestaurant,
     'id': order.id,
     'customerId': order.customerId,
     'courierId': order.courierId,
@@ -173,6 +179,8 @@ class MockCustomerOrderService implements CustomerOrderService {
   };
 
   static Order _decode(Map<String, dynamic> json) => Order(
+    orderName: json['orderName'] as String?,
+    pickupRestaurant: json['pickupRestaurant'] as String?,
     id: json['id'] as String,
     customerId: json['customerId'] as String,
     courierId: json['courierId'] as String?,

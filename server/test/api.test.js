@@ -69,7 +69,8 @@ describe('GET /locations', () => {
     const res = await request('GET', '/locations');
     assert.equal(res.status, 200);
     assert.ok(res.body.length >= 2);
-    assert.deepEqual(res.body[0], { id: 'union', name: 'LSU Student Union', distanceFromUnionMiles: 0 });
+    assert.equal(res.body[0].id, 'union');
+    assert.equal(res.body[0].distanceFromUnionMiles, 0);
     const distances = res.body.map((l) => l.distanceFromUnionMiles);
     assert.deepEqual(distances, [...distances].sort((a, b) => a - b));
   });
@@ -327,7 +328,7 @@ describe('earnings', () => {
     const d = res.body.deliveries.find((x) => x.orderId === second.id);
     assert.equal(d.deliveryFee, 4.5);
     assert.equal(d.tip, 3);
-    assert.equal(d.dropoffLocationName, 'Nicholson Gateway');
+    assert.equal(d.dropoffLocationName, 'Nicholson Gateway Apartments');
     assert.ok(d.deliveredAt);
   });
 

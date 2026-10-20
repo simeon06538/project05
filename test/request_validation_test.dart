@@ -27,6 +27,14 @@ void main() {
     await tester.ensureVisible(field);
     await tester.tap(field);
     await tester.pumpAndSettle();
+    if (find.text(location).evaluate().isEmpty) {
+      await tester.scrollUntilVisible(
+        find.text(location),
+        -120,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+    }
     await tester.tap(find.text(location).last);
     await tester.pumpAndSettle();
   }

@@ -19,6 +19,7 @@ class DeliveryRequestDraft {
   final CampusLocation dropoff;
   final int tipCents;
 
-  int get feeCents => deliveryFeeCents(dropoff.distanceFromUnionMiles);
+  double get distanceMiles => routeDistanceMiles(pickup, dropoff);
+  int get feeCents => deliveryFeeCents(distanceMiles);
   int get totalCents => feeCents + tipCents;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../services/customer_order_service.dart';
+import '../../services/api_customer_order_service.dart';
 
 import '../../models/delivery_request_draft.dart';
 import '../../models/order.dart';
@@ -45,7 +46,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Demo request saved'),
+          title: Text(
+            service.isServerBacked
+                ? 'Delivery request sent'
+                : 'Demo request saved',
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -57,8 +62,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                   repeat: false,
                 ),
               ),
-              const Text(
-                'Your request is saved on this device and will appear in Active deliveries. This demo is not connected to couriers yet. No money was transferred.',
+              Text(
+                service.isServerBacked
+                    ? 'Your request is saved on the server and available for a courier to accept. No real money was transferred.'
+                    : 'Your request is saved on this device and will appear in Active deliveries. This demo is not connected to couriers yet. No money was transferred.',
               ),
             ],
           ),
@@ -71,12 +78,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         ),
       );
       if (context.mounted) Navigator.pop(context, order);
-    } catch (_) {
+    } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Could not save your demo request. Please try again.',
+              error is CustomerApiException
+                  ? error.message
+                  : 'Could not save your demo request. Please try again.',
             ),
           ),
         );
@@ -187,7 +196,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${draft.dropoff.distanceFromUnionMiles.toStringAsFixed(2)} miles from the Union',
+                            'Approx. ${draft.distanceMiles.toStringAsFixed(2)} miles from ${draft.pickup.name} (demo estimate)',
                           ),
                           price('Delivery fee', draft.feeCents),
                           price('Tip', draft.tipCents),
@@ -204,6 +213,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                     Text(
                       widget.orderService == null
                           ? 'Preview only · Confirmation does not save or send an order yet.'
+                          : widget.orderService!.isServerBacked
+                          ? 'Confirmation sends this request to the delivery server. No real payment is made.'
                           : 'Demo orders are saved on this device. No real payment is made.',
                       textAlign: TextAlign.center,
                     ),

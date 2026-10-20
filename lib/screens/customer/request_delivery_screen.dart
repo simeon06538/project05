@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/customer_order_service.dart';
 
 import '../../constants/campus_locations.dart';
+import '../../constants/campus_restaurants.dart';
 import '../../models/order.dart';
 import '../../models/delivery_request_draft.dart';
 import 'order_confirmation_screen.dart';
@@ -43,6 +44,27 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
   final _dropoffKey = GlobalKey<FormFieldState<String>>();
   final _tipKey = GlobalKey();
   bool _attemptedReview = false;
+
+  void _selectRestaurant(CampusRestaurant restaurant) {
+    FocusScope.of(context).unfocus();
+    _restaurant.text = restaurant.name;
+    setState(() => _pickup = restaurant.pickupLocationId);
+    // A dropdown's initialValue alone does not update an already-mounted field.
+    _pickupKey.currentState?.didChange(restaurant.pickupLocationId);
+  }
+
+  void _matchRestaurant(String value) {
+    String normalized(String text) =>
+        text.trim().toLowerCase().replaceAll(RegExp(r"[^a-z0-9]"), '');
+    final matches = campusRestaurants
+        .where((restaurant) => normalized(restaurant.name) == normalized(value))
+        .toList();
+    if (matches.length == 1) {
+      final restaurant = matches.single;
+      setState(() => _pickup = restaurant.pickupLocationId);
+      _pickupKey.currentState?.didChange(restaurant.pickupLocationId);
+    }
+  }
 
   String? _required(String? value, String message) =>
       value == null || value.trim().isEmpty ? message : null;
@@ -129,9 +151,13 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
     final destination = _dropoff == null
         ? null
         : campusLocations.firstWhere((location) => location.id == _dropoff);
-    final fee = destination == null
+    final pickup = campusLocations.firstWhere(
+      (location) => location.id == _pickup,
+    );
+    final distance = destination == null
         ? null
-        : deliveryFeeCents(destination.distanceFromUnionMiles);
+        : routeDistanceMiles(pickup, destination);
+    final fee = distance == null ? null : deliveryFeeCents(distance);
     final total = fee == null || _tipCents == null ? null : fee + _tipCents!;
     Widget line(String label, String value) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -155,7 +181,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
             const Text('Choose a drop-off location to calculate your fee.')
           else
             Text(
-              '${destination.distanceFromUnionMiles.toStringAsFixed(2)} miles from the Union',
+              'Approx. ${distance!.toStringAsFixed(2)} miles from ${pickup.name} (demo estimate)',
             ),
           line('Delivery fee', fee == null ? '—' : formatCents(fee)),
           line(
@@ -248,14 +274,62 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
+                            maxLength: 100,
                             key: _restaurantKey,
                             validator: (value) =>
                                 _required(value, 'Enter the pickup restaurant'),
                             controller: _restaurant,
-                            decoration: const InputDecoration(
+                            onChanged: _matchRestaurant,
+                            decoration: InputDecoration(
                               labelText: 'Pickup restaurant',
-                              hintText: 'e.g. Chick-fil-A',
-                              helperText: 'Enter the restaurant at your pickup location.',
+                              hintText: 'Choose a restaurant or enter its name',
+                              helperText: 'The dropdown sets the pickup building automatically.',
+                              helperMaxLines: 2,
+                              suffixIcon: PopupMenuButton<CampusRestaurant>(
+                                key: const ValueKey('restaurant-picker'),
+                                tooltip: 'Choose pickup restaurant',
+                                icon: const Icon(Icons.arrow_drop_down),
+                                onSelected: (restaurant) {
+                                  if (restaurant.pickupLocationId.isEmpty) {
+                                    _restaurant.clear();
+                                    setState(() {});
+                                  } else {
+                                    _selectRestaurant(restaurant);
+                                  }
+                                },
+                                itemBuilder: (_) => [
+                                  for (final restaurant in campusRestaurants)
+                                    PopupMenuItem(
+                                      value: restaurant,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(restaurant.name),
+                                          Text(
+                                            campusLocations
+                                                .firstWhere(
+                                                  (location) =>
+                                                      location.id ==
+                                                      restaurant
+                                                          .pickupLocationId,
+                                                )
+                                                .name,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  const PopupMenuItem(
+                                    value: CampusRestaurant('Other', ''),
+                                    child: Text(
+                                      'Other · Enter restaurant and pickup building',
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             textCapitalization: TextCapitalization.words,
                             textInputAction: TextInputAction.next,
