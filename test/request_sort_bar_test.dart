@@ -39,7 +39,7 @@ void main() {
   // Chick-fil-A $4.50 1.1 mi (no tip), Panda Express $7.00 0.9 mi,
   // Subway $4.50 0.3 mi.
   const grill = 'Student Union · Grill';
-  const starbucks = 'Student Union · Starbucks';
+  const starbucks = 'Bookstore · Starbucks';
   const panda = 'Student Union · Panda Express';
   const subway = 'Student Union · Subway';
 

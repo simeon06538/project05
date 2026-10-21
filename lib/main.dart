@@ -31,7 +31,7 @@ Future<void> main() async {
   // TODO(K-12): swap in the real API service once the server is ready.
   // New demo requests trickle in so auto-refresh (K-11) has something to show.
   final service = MockCourierService(
-    newRequestEvery: const Duration(seconds: 30),
+    newRequestEvery: const Duration(minutes: 1),
   );
   // Demo: another courier grabs the best-paying request (Panda Express)
   // after a minute, to show the "already taken" message (K-13).

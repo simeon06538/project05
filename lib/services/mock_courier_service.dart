@@ -226,7 +226,14 @@ class MockCourierService implements CourierService {
     // from the Union, capped at $6.00.
     final seed = [
       ('Student Union · Grill', 'Library · Main entrance', 0.4, 300, 100, 18),
-      ('Student Union · Starbucks', 'Engineering Hall', 0.7, 350, 200, 9),
+      (
+        'Bookstore · Starbucks',
+        'Patrick F. Taylor Hall (PFT)',
+        0.7,
+        350,
+        200,
+        9,
+      ),
       ('Student Union · Chick-fil-A', 'North Residence Hall', 1.1, 450, 0, 6),
       ('Student Union · Panda Express', 'Rec Center', 0.9, 400, 300, 4),
       (
@@ -255,9 +262,16 @@ class MockCourierService implements CourierService {
   void seedHistory(String courierId, {DateTime? now}) {
     const history = [
       // (days ago, pickup, drop-off, miles, fee, tip)
-      (1, 'Student Union · Starbucks', 'Music Building', 0.5, 300, 200),
+      (1, 'Bookstore · Starbucks', 'Music Building', 0.5, 300, 200),
       (1, 'Student Union · Grill', 'Rec Center', 0.9, 400, 100),
-      (2, 'Student Union · Subway', 'Business Building', 0.6, 350, 0),
+      (
+        2,
+        'Student Union · Subway',
+        'Business Education Complex (BEC)',
+        0.6,
+        350,
+        0,
+      ),
       (
         3,
         'Student Union · Panda Express',
@@ -274,16 +288,16 @@ class MockCourierService implements CourierService {
         300,
         150,
       ),
-      (3, 'Student Union · Grill', 'Engineering Hall', 0.7, 350, 100),
-      (5, 'Student Union · Chick-fil-A', 'Stadium · Gate 4', 1.4, 500, 250),
       (
-        6,
-        'Student Union · Starbucks',
-        'Science Building · Room 120',
-        0.3,
-        300,
-        0,
+        3,
+        'Student Union · Grill',
+        'Patrick F. Taylor Hall (PFT)',
+        0.7,
+        350,
+        100,
       ),
+      (5, 'Student Union · Chick-fil-A', 'Stadium · Gate 4', 1.4, 500, 250),
+      (6, 'Bookstore · Starbucks', 'Science Building · Room 120', 0.3, 300, 0),
     ];
     final today = now ?? DateTime.now();
     for (final (daysAgo, pickup, dropoff, miles, fee, tip) in history) {
@@ -335,9 +349,15 @@ class MockCourierService implements CourierService {
   /// as if a customer just ordered. Returns the new order.
   Order addDemoRequest({DateTime? now}) {
     const pool = [
-      ('Student Union · Taco Bell', 'Business Building', 0.6, 350, 100),
+      (
+        'Student Union · Taco Bell',
+        'Business Education Complex (BEC)',
+        0.6,
+        350,
+        100,
+      ),
       ('Student Union · Grill', 'South Residence Hall', 1.0, 400, 0),
-      ('Student Union · Starbucks', 'Music Building', 0.5, 300, 250),
+      ('Bookstore · Starbucks', 'Music Building', 0.5, 300, 250),
       ('Student Union · Subway', 'Stadium · Gate 4', 1.4, 500, 200),
     ];
     final (pickup, dropoff, miles, fee, tip) = pool[_nextDemo % pool.length];
