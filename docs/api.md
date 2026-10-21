@@ -65,7 +65,7 @@ Owner: Person 3 (server). Change this file in the same commit as any API change.
 - `pickupLocation` and `dropoffLocation` are location IDs. The `...Name` fields are
   included so screens don't have to look them up.
 - `courierId` is `null` until a courier accepts.
-- `distanceMiles` is the drop-off location's distance from the Union.
+- `distanceMiles` is the approximate pickup-to-drop-off distance. Union pickups retain the catalog's Union estimate; other origins use schematic offsets. See [location sources and limitations](locations.md).
 - `deliveryFee`, `distanceMiles` and `totalPay` are always **calculated by the server**.
   If the client sends them, the server ignores them.
 
@@ -78,6 +78,10 @@ requested -> cancelled
 
 No other transitions are allowed. `delivered` and `cancelled` are final.
 
+### Customer pickup metadata
+
+Orders now include nullable `orderName` and `pickupRestaurant` strings. New customer requests send both (1–100 characters, trimmed); they remain optional on the server for compatibility with existing courier/demo clients. Old orders have null values. These fields identify the food order and restaurant within a pickup building.
+
 ## Pricing
 
 ```
@@ -85,7 +89,7 @@ deliveryFee = min($2.00 + $0.50 * ceil(distanceMiles / 0.25), $6.00)
 totalPay    = deliveryFee + tip
 ```
 
-| Distance from Union | Fee   |
+| Estimated delivery distance | Fee   |
 |---------------------|-------|
 | 0 mi                | $2.00 |
 | 0.1 mi              | $2.50 |
@@ -131,7 +135,7 @@ Every error uses the same shape:
 
 ### `GET /locations`
 
-Lists the campus locations, sorted by distance from the Union.
+Lists the shared campus catalog, sorted by distance from the Union. Each location also includes `demoXMiles`, `demoYMiles`, and `category` (`campus`, `residence_hall`, or `apartment`). These are approximate demo offsets, not GPS coordinates. Source details: [locations.md](locations.md).
 
 `200`
 ```json
@@ -168,6 +172,8 @@ Request:
   "pickupLocation": "union",
   "dropoffLocation": "west-campus-apts",
   "tip": 2,
+  "orderName": "Alex Customer",
+  "pickupRestaurant": "Chick-fil-A",
   "pawPointsOrderNumber": "PP-10442"
 }
 ```
@@ -176,7 +182,8 @@ Rules:
 - `customerId` must be an existing user with role `customer`.
 - `pickupLocation` and `dropoffLocation` must be known location IDs and must be different.
 - `tip` is optional (default `0`), from 0 to 50, at most 2 decimals.
-- `pawPointsOrderNumber` is required, 1-40 chars.
+- `pawPointsOrderNumber` is required, 1-40 chars, for mobile orders. Set `isMobileOrder: false` for Panera or other restaurants outside LSU Dining; the number may then be omitted or empty (maximum 40 chars). `isMobileOrder` defaults to true for existing clients.
+- `orderName` and `pickupRestaurant` are optional for older clients; when provided they must be nonblank strings of 1–100 chars. The customer app requires both.
 
 `201` returns the Order with `status: "requested"`.
 Errors: `400 validation_error`, `404 not_found` (no user with that id, or the user is not a customer).
@@ -270,3 +277,14 @@ Courier's demo balance and completed deliveries, newest first.
 ```
 
 Errors: `400`, `404 not_found` (no courier with that id).
+
+### `DELETE /orders/:id`
+
+Permanently deletes a request while it is still `requested`. Body: `{ "customerId": 1 }`.
+Returns `204` with no body. The request disappears from every list, including history; this is distinct from cancellation. Ownership and status are checked in the same SQLite write transaction as deletion.
+
+Errors: `400 validation_error` (invalid IDs/body), `403 forbidden` (another customer), `404 not_found`, `409 invalid_transition` (accepted, picked up, delivered, or cancelled). Fulfilled orders cannot be deleted through this endpoint and remain in Past deliveries.
+
+## Class-demo identity
+
+The API currently trusts supplied user IDs and has no password authentication. Flutter creates a customer with `POST /users`, remembers the returned unique ID per normalized welcome-screen name and API origin on the device, and verifies the saved ID with `GET /users/:id` when reopening the profile. Matching names on different devices are separate demo profiles. A server reset requires restarting the app; stale/mismatched saved IDs are checked before reuse. This is not production authentication.

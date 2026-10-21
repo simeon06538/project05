@@ -69,7 +69,8 @@ describe('GET /locations', () => {
     const res = await request('GET', '/locations');
     assert.equal(res.status, 200);
     assert.ok(res.body.length >= 2);
-    assert.deepEqual(res.body[0], { id: 'union', name: 'LSU Student Union', distanceFromUnionMiles: 0 });
+    assert.equal(res.body[0].id, 'union');
+    assert.equal(res.body[0].distanceFromUnionMiles, 0);
     const distances = res.body.map((l) => l.distanceFromUnionMiles);
     assert.deepEqual(distances, [...distances].sort((a, b) => a - b));
   });
@@ -140,6 +141,15 @@ describe('POST /orders', () => {
     assert.equal(res.body.tip, 0);
     assert.equal(res.body.totalPay, 4);
     assert.equal((await createOrder({ tip: 4.75 })).totalPay, 8.75);
+  });
+
+  test('non-mobile restaurants allow no number while mobile orders still require it', async () => {
+    for (const pawPointsOrderNumber of ['', undefined]) {
+      const order = await createOrder({ pickupRestaurant: 'Panera Bread', pickupLocation: 'patrick-taylor-hall', isMobileOrder: false, pawPointsOrderNumber });
+      assert.equal(order.pawPointsOrderNumber, '');
+    }
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: true, pawPointsOrderNumber: '' })), 400, 'validation_error');
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: 'false', pawPointsOrderNumber: '' })), 400, 'validation_error');
   });
 
   test('validation errors', async () => {
@@ -287,6 +297,15 @@ describe('PATCH /orders/:id/status', () => {
     assertError(await request('PATCH', `/orders/${order.id}/status`, { status: 'picked_up', courierId: OTHER_COURIER }), 403, 'forbidden');
   });
 
+  test('non-mobile restaurants allow no number while mobile orders still require it', async () => {
+    for (const pawPointsOrderNumber of ['', undefined]) {
+      const order = await createOrder({ pickupRestaurant: 'Panera Bread', pickupLocation: 'patrick-taylor-hall', isMobileOrder: false, pawPointsOrderNumber });
+      assert.equal(order.pawPointsOrderNumber, '');
+    }
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: true, pawPointsOrderNumber: '' })), 400, 'validation_error');
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: 'false', pawPointsOrderNumber: '' })), 400, 'validation_error');
+  });
+
   test('validation errors', async () => {
     const order = await createOrder();
     const attempt = (body) => request('PATCH', `/orders/${order.id}/status`, body);
@@ -327,7 +346,7 @@ describe('earnings', () => {
     const d = res.body.deliveries.find((x) => x.orderId === second.id);
     assert.equal(d.deliveryFee, 4.5);
     assert.equal(d.tip, 3);
-    assert.equal(d.dropoffLocationName, 'Nicholson Gateway');
+    assert.equal(d.dropoffLocationName, 'Nicholson Gateway Apartments');
     assert.ok(d.deliveredAt);
   });
 

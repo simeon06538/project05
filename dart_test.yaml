@@ -1,0 +1,6 @@
+tags:
+  # K-48: golden (screenshot) tests. The PNGs were rendered on Windows;
+  # other systems anti-alias text slightly differently, so CI on Linux
+  # should run `flutter test --exclude-tags golden` or regenerate them with
+  # `flutter test --update-goldens --tags golden` on that machine.
+  golden:

@@ -38,7 +38,7 @@ same but restarts automatically when you edit a file.
 ### Pointing the Flutter app at it
 
 The app reads the base URL from [lib/services/api_config.dart](lib/services/api_config.dart)
-(default `http://localhost:3000`). Override it when running:
+(Android emulator defaults to `http://10.0.2.2:3000`; other platforms use `http://localhost:3000`). Override it when running:
 
 | Where the app runs       | Command                                                                  |
 |--------------------------|--------------------------------------------------------------------------|
@@ -102,3 +102,26 @@ curl http://localhost:3000/couriers/4/earnings
 ```
 
 (On Windows, run these in Git Bash, or use `curl.exe` in PowerShell.)
+
+## Customer app (Person 1)
+
+Start the server in one terminal (`cd server`, `npm ci`, `npm start`). In another terminal at the project root:
+
+```sh
+flutter pub get
+flutter run
+```
+
+Run `lib/main.dart` in Android Studio with the Pixel emulator selected. The Android emulator defaults to `http://10.0.2.2:3000`; other platforms default to localhost. A physical phone needs `--dart-define=API_BASE_URL=http://YOUR_COMPUTER_LAN_IP:3000`. Local HTTP is enabled only for Android debug builds; release servers should use HTTPS.
+
+Customer requests now use the server by default, including order name/restaurant and permanent deletion of the owner's waiting requests. Delivered orders remain in Past. Prices are recalculated by the server using approximate pickup-to-drop-off distance. [Location sources and estimate limitations](docs/locations.md).
+
+For offline mock mode, run `flutter run --dart-define=USE_MOCK_CUSTOMER_API=true`. Previously saved mock orders remain on the device and are **not** automatically uploaded to the server. Server orders are stored in SQLite; the device stores the server user ID for each demo name. No password is used.
+
+The courier UI still uses Person 2's mock service until their K-12 integration. Real customer orders are available through `GET /orders?status=requested`; no courier UI code was replaced here. After a server demo reset, restart the app so its saved customer ID is rechecked.
+
+Customer API smoke test against an isolated in-memory Node server (requires `npm ci` in `server/` first):
+
+```sh
+flutter test --dart-define=RUN_LIVE_CUSTOMER_API=true test/live_customer_api_test.dart
+```

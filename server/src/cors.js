@@ -13,7 +13,7 @@ function cors(allowed = '*') {
       res.vary('Origin');
     }
     if (req.method === 'OPTIONS') {
-      res.set('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+      res.set('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
       res.set('Access-Control-Allow-Headers', 'Content-Type');
       res.set('Access-Control-Max-Age', '600');
       return res.status(204).end();

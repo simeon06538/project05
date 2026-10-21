@@ -50,6 +50,16 @@ function openDb(dbPath) {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
+  // Additive migrations preserve existing demo data and old client requests.
+  for (const [table, columns] of Object.entries({
+    locations: { demo_x_miles: 'REAL NOT NULL DEFAULT 0', demo_y_miles: 'REAL NOT NULL DEFAULT 0', category: "TEXT NOT NULL DEFAULT 'campus'" },
+    orders: { order_name: 'TEXT', pickup_restaurant: 'TEXT' },
+  })) {
+    const existing = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name));
+    for (const [name, type] of Object.entries(columns)) {
+      if (!existing.has(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${type}`);
+    }
+  }
   return db;
 }
 

@@ -90,7 +90,7 @@ C-07  Write unit tests for the fee calculator (base fee, rounding, cap).
 C-08  Add the tip selector ($0/$1/$2/$3/custom) with input validation.
 C-09  Show a live price summary: delivery fee + tip = total.
 C-10  Add form validation (both locations required, pickup != drop-off,
-      order number required).
+      order number required for restaurants in the mobile ordering app).
 C-11  Build the Order Confirmation screen ("Confirm & Pay (demo)").
 C-12  Create a mock order service that returns fake data so screens work
       before the server is ready.
@@ -99,7 +99,8 @@ C-13  Swap the mock service for real API calls (POST /orders) once
 C-14  Build the Order Tracking screen showing current status with a
       progress indicator (requested/accepted/picked up/delivered).
 C-15  Add auto-refresh / polling (or live updates) on the tracking screen.
-C-16  Allow customer to cancel an order while it is still "requested".
+C-16  Allow customers to delete their own request while it is still
+      "requested". Deleted requests do not appear in Past deliveries.
 C-17  Add loading spinners and error messages (no network, server error).
 C-18  Polish: consistent theme, icons, spacing, empty states.
 C-19  Widget tests for the Request Delivery form and tip selector.
