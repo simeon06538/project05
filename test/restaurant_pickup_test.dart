@@ -96,6 +96,31 @@ void main() {
         find.textContaining('miles from Patrick F. Taylor Hall'),
         findsOneWidget,
       );
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField).at(2))
+            .validator!(''),
+        isNull,
+      );
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        'Another local restaurant',
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField).at(2))
+            .validator!(''),
+        isNull,
+      );
+      await tester.enterText(find.byType(TextFormField).at(1), 'Chick-fil-A');
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField).at(2))
+            .validator!(''),
+        isNotNull,
+      );
     },
   );
 

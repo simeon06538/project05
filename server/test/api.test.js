@@ -143,6 +143,15 @@ describe('POST /orders', () => {
     assert.equal((await createOrder({ tip: 4.75 })).totalPay, 8.75);
   });
 
+  test('non-mobile restaurants allow no number while mobile orders still require it', async () => {
+    for (const pawPointsOrderNumber of ['', undefined]) {
+      const order = await createOrder({ pickupRestaurant: 'Panera Bread', pickupLocation: 'patrick-taylor-hall', isMobileOrder: false, pawPointsOrderNumber });
+      assert.equal(order.pawPointsOrderNumber, '');
+    }
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: true, pawPointsOrderNumber: '' })), 400, 'validation_error');
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: 'false', pawPointsOrderNumber: '' })), 400, 'validation_error');
+  });
+
   test('validation errors', async () => {
     const cases = [
       [{ customerId: undefined }, 'customerId'],
@@ -286,6 +295,15 @@ describe('PATCH /orders/:id/status', () => {
     assertError(await request('PATCH', `/orders/${order.id}/status`, { status: 'cancelled', customerId: OTHER_CUSTOMER }), 403, 'forbidden');
     await request('PATCH', `/orders/${order.id}/accept`, { courierId: COURIER });
     assertError(await request('PATCH', `/orders/${order.id}/status`, { status: 'picked_up', courierId: OTHER_COURIER }), 403, 'forbidden');
+  });
+
+  test('non-mobile restaurants allow no number while mobile orders still require it', async () => {
+    for (const pawPointsOrderNumber of ['', undefined]) {
+      const order = await createOrder({ pickupRestaurant: 'Panera Bread', pickupLocation: 'patrick-taylor-hall', isMobileOrder: false, pawPointsOrderNumber });
+      assert.equal(order.pawPointsOrderNumber, '');
+    }
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: true, pawPointsOrderNumber: '' })), 400, 'validation_error');
+    assertError(await request('POST', '/orders', validOrder({ isMobileOrder: 'false', pawPointsOrderNumber: '' })), 400, 'validation_error');
   });
 
   test('validation errors', async () => {

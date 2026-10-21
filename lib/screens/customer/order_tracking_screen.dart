@@ -248,8 +248,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
                                   _order.dropoffLocation,
                             ),
                             detail(
-                              'Paw Points order number',
-                              _order.pawPointsOrderNumber,
+                              'Order number',
+                              _order.pawPointsOrderNumber.isEmpty
+                                  ? 'Not provided'
+                                  : _order.pawPointsOrderNumber,
                             ),
                             detail(
                               'Distance',

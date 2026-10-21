@@ -50,6 +50,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Future<void> _reload() async {
+    if (_loading || widget.orderService == null) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -239,29 +240,55 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     onSelected: (index) => setState(() => _tab = index),
                   ),
                   const SizedBox(height: 16),
-                  if (_loading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_error != null)
-                    Column(
-                      children: [
-                        Text(_error!),
-                        TextButton(
-                          onPressed: _reload,
-                          child: const Text('Try again'),
-                        ),
-                      ],
-                    )
-                  else if (orders.isEmpty)
+                  if (_loading) ...[
+                    const Center(
+                      child: CircularProgressIndicator(
+                        semanticsLabel: 'Loading deliveries',
+                      ),
+                    ),
+                    const Center(child: Text('Loading deliveries…')),
+                    const SizedBox(height: 12),
+                  ],
+                  if (_error != null)
+                    GlassPanel(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Icon(Icons.cloud_off_outlined, size: 28),
+                          const SizedBox(height: 8),
+                          Semantics(
+                            liveRegion: true,
+                            child: Text(_error!, textAlign: TextAlign.center),
+                          ),
+                          if (_savedOrders.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Showing your last loaded deliveries. Status may be out of date.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                          TextButton.icon(
+                            onPressed: _reload,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Try again'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (_error != null) const SizedBox(height: 16),
+                  if (!_loading && _error == null && orders.isEmpty)
                     EmptyState(
-                      icon: Icons.receipt_long_outlined,
+                      icon: _tab == 0
+                          ? Icons.delivery_dining_outlined
+                          : Icons.history,
                       title: _tab == 0
                           ? 'No active deliveries'
                           : 'No past deliveries',
                       subtitle: _tab == 0
-                          ? 'Your delivery requests will appear here.'
-                          : 'Completed and cancelled deliveries will appear here.',
-                    )
-                  else
+                          ? 'Tap Request a Delivery to arrange pickup of food you have already ordered.'
+                          : 'Your delivery history will appear here. Deleted requests are not saved to history.',
+                    ),
+                  if (orders.isNotEmpty)
                     for (final order in orders) ...[
                       _CustomerOrderCard(
                         order: order,
@@ -342,7 +369,9 @@ class _CustomerOrderCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Paw Points order: ${order.pawPointsOrderNumber}',
+                order.pawPointsOrderNumber.isEmpty
+                    ? 'No order number provided'
+                    : 'Paw Points order: ${order.pawPointsOrderNumber}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const Divider(height: 24),

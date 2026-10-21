@@ -143,6 +143,7 @@ class ApiCustomerOrderService implements CustomerOrderService {
         'dropoffLocation': draft.dropoff.id,
         'tip': draft.tipCents / 100,
         'pawPointsOrderNumber': draft.orderNumber.trim(),
+        'isMobileOrder': draft.isMobileOrder,
         'orderName': draft.orderName.trim(),
         'pickupRestaurant': draft.restaurant.trim(),
       },

@@ -25,7 +25,11 @@ function ordersRouter(db) {
     const pickupRestaurant = check.string(body.pickupRestaurant, 'pickupRestaurant', { optional: true });
     const pickupId = check.string(body.pickupLocation, 'pickupLocation', { max: 64 });
     const dropoffId = check.string(body.dropoffLocation, 'dropoffLocation', { max: 64 });
-    const pawPointsOrderNumber = check.string(body.pawPointsOrderNumber, 'pawPointsOrderNumber', { max: 40 });
+    const isMobileOrder = body.isMobileOrder ?? true;
+    if (typeof isMobileOrder !== 'boolean') check.fail('isMobileOrder', 'must be a boolean');
+    const pawPointsOrderNumber = check.string(body.pawPointsOrderNumber, 'pawPointsOrderNumber', {
+      max: 40, min: isMobileOrder === false ? 0 : 1, optional: isMobileOrder === false,
+    }) ?? '';
 
     const pickup = pickupId && getLocation.get(pickupId);
     const dropoff = dropoffId && getLocation.get(dropoffId);

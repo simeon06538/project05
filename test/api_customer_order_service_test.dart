@@ -42,6 +42,7 @@ void main() {
           'dropoffLocation': 'middleton-library',
           'tip': 1.15,
           'pawPointsOrderNumber': 'PP-123',
+          'isMobileOrder': true,
           'orderName': 'Taylor',
           'pickupRestaurant': 'Sonic',
         });

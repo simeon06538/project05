@@ -182,7 +182,7 @@ Rules:
 - `customerId` must be an existing user with role `customer`.
 - `pickupLocation` and `dropoffLocation` must be known location IDs and must be different.
 - `tip` is optional (default `0`), from 0 to 50, at most 2 decimals.
-- `pawPointsOrderNumber` is required, 1-40 chars.
+- `pawPointsOrderNumber` is required, 1-40 chars, for mobile orders. Set `isMobileOrder: false` for Panera or other restaurants outside LSU Dining; the number may then be omitted or empty (maximum 40 chars). `isMobileOrder` defaults to true for existing clients.
 - `orderName` and `pickupRestaurant` are optional for older clients; when provided they must be nonblank strings of 1–100 chars. The customer app requires both.
 
 `201` returns the Order with `status: "requested"`.

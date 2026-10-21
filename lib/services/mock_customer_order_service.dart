@@ -99,7 +99,7 @@ class MockCustomerOrderService implements CustomerOrderService {
         if (customerId.trim().isEmpty ||
             draft.orderName.trim().isEmpty ||
             draft.restaurant.trim().isEmpty ||
-            draft.orderNumber.trim().isEmpty ||
+            (draft.isMobileOrder && draft.orderNumber.trim().isEmpty) ||
             draft.orderNumber.trim().length > 40 ||
             draft.pickup.id == draft.dropoff.id ||
             draft.tipCents < 0 ||

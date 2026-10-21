@@ -1,3 +1,4 @@
+import '../constants/campus_restaurants.dart';
 import '../constants/campus_locations.dart';
 import '../services/pricing.dart';
 
@@ -18,6 +19,8 @@ class DeliveryRequestDraft {
   final CampusLocation pickup;
   final CampusLocation dropoff;
   final int tipCents;
+
+  bool get isMobileOrder => usesMobileOrdering(restaurant);
 
   double get distanceMiles => routeDistanceMiles(pickup, dropoff);
   int get feeCents => deliveryFeeCents(distanceMiles);

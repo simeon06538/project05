@@ -34,3 +34,14 @@ const campusRestaurants = <CampusRestaurant>[
   CampusRestaurant('City Sub', 'foster-hall'),
   CampusRestaurant('Panera Bread', 'patrick-taylor-hall'),
 ];
+
+/// Unlisted restaurants and Panera do not use the LSU Dining order number.
+bool usesMobileOrdering(String name) {
+  String normalize(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  return campusRestaurants.any(
+    (restaurant) =>
+        restaurant.name != 'Panera Bread' &&
+        normalize(restaurant.name) == normalize(name),
+  );
+}

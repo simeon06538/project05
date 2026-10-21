@@ -39,34 +39,41 @@ void main() {
         client: client,
         baseUrl: base,
       );
-      final draft = DeliveryRequestDraft(
-        orderName: 'Taylor',
-        restaurant: 'Popeyes',
-        orderNumber: 'PP-LIVE',
-        pickup: campusLocations.firstWhere(
-          (location) => location.id == 'the-5',
-        ),
-        dropoff: campusLocations.firstWhere(
-          (location) => location.id == 'spruce-hall',
-        ),
-        tipCents: 100,
-      );
-      final order = await service.createOrder('demo-customer:taylor', draft);
-      expect(order.pickupRestaurant, 'Popeyes');
-      expect(order.orderName, 'Taylor');
-      expect(order.distanceMiles, draft.distanceMiles);
-      expect(order.totalPayCents, draft.totalCents);
-      final reopened = ApiCustomerOrderService(
-        preferences: preferences,
-        client: client,
-        baseUrl: base,
-      );
-      expect(
-        (await reopened.fetchOrders('demo-customer:taylor')).single.id,
-        order.id,
-      );
-      await reopened.deleteOrder('demo-customer:taylor', order.id);
-      expect(await reopened.fetchOrders('demo-customer:taylor'), isEmpty);
+      for (final restaurant in ['Popeyes', 'Panera Bread']) {
+        final draft = DeliveryRequestDraft(
+          orderName: 'Taylor',
+          restaurant: restaurant,
+          orderNumber: restaurant == 'Panera Bread' ? '' : 'PP-LIVE',
+          pickup: campusLocations.firstWhere(
+            (location) =>
+                location.id ==
+                (restaurant == 'Panera Bread'
+                    ? 'patrick-taylor-hall'
+                    : 'the-5'),
+          ),
+          dropoff: campusLocations.firstWhere(
+            (location) => location.id == 'spruce-hall',
+          ),
+          tipCents: 100,
+        );
+        final order = await service.createOrder('demo-customer:taylor', draft);
+        expect(order.pickupRestaurant, restaurant);
+        expect(order.pawPointsOrderNumber, draft.orderNumber);
+        expect(order.orderName, 'Taylor');
+        expect(order.distanceMiles, draft.distanceMiles);
+        expect(order.totalPayCents, draft.totalCents);
+        final reopened = ApiCustomerOrderService(
+          preferences: preferences,
+          client: client,
+          baseUrl: base,
+        );
+        expect(
+          (await reopened.fetchOrders('demo-customer:taylor')).single.id,
+          order.id,
+        );
+        await reopened.deleteOrder('demo-customer:taylor', order.id);
+        expect(await reopened.fetchOrders('demo-customer:taylor'), isEmpty);
+      }
     },
     skip: !const bool.fromEnvironment('RUN_LIVE_CUSTOMER_API'),
   );

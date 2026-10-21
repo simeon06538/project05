@@ -40,6 +40,47 @@ void main() {
   }
 
   testWidgets(
+    'customer refresh keeps loaded deliveries on failure and retry recovers',
+    (tester) async {
+      phone(tester);
+      final service = _TrackingService();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: CustomerHomeScreen(
+            name: 'Taylor',
+            onSwitchRole: () {},
+            orders: const [],
+            orderService: service,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Waiting for a courier'), findsOneWidget);
+      service.fail = true;
+      await tester.ensureVisible(find.text('Refresh deliveries'));
+      await tester.tap(find.text('Refresh deliveries'));
+      await tester.pumpAndSettle();
+      expect(find.text('Waiting for a courier'), findsOneWidget);
+      expect(
+        find.textContaining('Showing your last loaded deliveries'),
+        findsOneWidget,
+      );
+      service.fail = false;
+      service.current = service.current!.copyWith(status: OrderStatus.accepted);
+      await tester.ensureVisible(find.text('Try again'));
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Showing your last loaded deliveries'),
+        findsNothing,
+      );
+      expect(find.text('Waiting for a courier'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
     'polls active deliveries, pauses in background, and stops on completion',
     (tester) async {
       phone(tester);

@@ -179,7 +179,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                           detail('Name on the food order', draft.orderName),
                           detail('Pickup restaurant', draft.restaurant),
                           detail('Pickup location', draft.pickup.name),
-                          detail('Paw Points order number', draft.orderNumber),
+                          detail(
+                            draft.isMobileOrder
+                                ? 'Paw Points order number'
+                                : 'Order number',
+                            draft.orderNumber.isEmpty
+                                ? 'Not provided'
+                                : draft.orderNumber,
+                          ),
                           const Divider(),
                           detail('Drop-off location', draft.dropoff.name),
                         ],
@@ -204,7 +211,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                           price('Estimated delivery total', draft.totalCents),
                           const SizedBox(height: 8),
                           const Text(
-                            'Food is already paid separately with Paw Points. This total covers delivery only.',
+                            'Food is already paid separately. This total covers delivery only.',
                           ),
                         ],
                       ),

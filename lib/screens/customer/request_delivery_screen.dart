@@ -54,6 +54,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
   }
 
   void _matchRestaurant(String value) {
+    setState(() {});
     String normalized(String text) =>
         text.trim().toLowerCase().replaceAll(RegExp(r"[^a-z0-9]"), '');
     final matches = campusRestaurants
@@ -196,7 +197,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Food is paid separately with Paw Points. The server confirms the final delivery fee.',
+            'Food is paid separately. The server confirms the final delivery fee.',
           ),
         ],
       ),
@@ -236,7 +237,7 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Already ordered? Use the details from your LSU Dining order. Food is paid separately with Paw Points.',
+                      'Request pickup of food you have already ordered and paid for separately. LSU Dining orders use Paw Points.',
                     ),
                     const SizedBox(height: 20),
                     GlassPanel(
@@ -344,13 +345,21 @@ class _RequestDeliveryScreenState extends State<RequestDeliveryScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             key: _orderNumberKey,
-                            validator: (value) => _required(
-                              value,
-                              'Enter your Paw Points order number',
-                            ),
+                            validator: (value) =>
+                                usesMobileOrdering(_restaurant.text) ||
+                                    _restaurant.text.trim().isEmpty
+                                ? _required(
+                                    value,
+                                    'Enter your Paw Points order number',
+                                  )
+                                : null,
                             controller: _orderNumber,
-                            decoration: const InputDecoration(
-                              labelText: 'Paw Points order number',
+                            decoration: InputDecoration(
+                              labelText:
+                                  usesMobileOrdering(_restaurant.text) ||
+                                      _restaurant.text.trim().isEmpty
+                                  ? 'Paw Points order number'
+                                  : 'Order number (optional)',
                               hintText: 'e.g. PP-10442',
                             ),
                             textInputAction: TextInputAction.done,
