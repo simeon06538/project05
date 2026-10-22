@@ -118,10 +118,24 @@ Customer requests now use the server by default, including order name/restaurant
 
 For offline mock mode, run `flutter run --dart-define=USE_MOCK_CUSTOMER_API=true`. Previously saved mock orders remain on the device and are **not** automatically uploaded to the server. Server orders are stored in SQLite; the device stores the server user ID for each demo name. No password is used.
 
-The courier UI still uses Person 2's mock service until their K-12 integration. Real customer orders are available through `GET /orders?status=requested`; no courier UI code was replaced here. After a server demo reset, restart the app so its saved customer ID is rechecked.
+After a server demo reset, restart the app so its saved customer ID is rechecked.
 
 Customer API smoke test against an isolated in-memory Node server (requires `npm ci` in `server/` first):
 
 ```sh
 flutter test --dart-define=RUN_LIVE_CUSTOMER_API=true test/live_customer_api_test.dart
+```
+
+## Courier app (Person 2)
+
+Choose **Courier** on the welcome screen. Couriers use the same server as customers (K-12): customer requests appear under Available, and accepting, picking up and delivering go through the server, which credits the pay to the courier's earnings. Like customers, each demo name is its own courier; the device remembers the server ID for each name and registers it again after a demo reset.
+
+The server has no endpoints for giving back an accepted delivery (K-28) or reporting a problem (K-51), so those buttons are hidden in server mode. Accept and pickup times are kept on the device, so a delivery loaded later shows those steps as "Done" in its timeline.
+
+For the offline demo (fake requests, a week of history, all features), run `flutter run --dart-define=USE_MOCK_COURIER_API=true`.
+
+Courier API smoke test (customer order → accept → pick up → deliver → earnings) against an isolated in-memory Node server (requires `npm ci` in `server/` first):
+
+```sh
+flutter test --dart-define=RUN_LIVE_COURIER_API=true test/live_courier_api_test.dart
 ```
