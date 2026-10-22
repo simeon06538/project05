@@ -14,13 +14,15 @@ import 'package:flutter/material.dart';
 
 import 'screens/courier/courier_home_screen.dart';
 import 'screens/courier/onboarding_screen.dart';
+import 'services/api_courier_service.dart';
 import 'services/courier_prefs.dart';
 import 'services/courier_service.dart';
 import 'services/mock_courier_service.dart';
 import 'theme/app_theme.dart';
 import 'theme/high_contrast.dart';
 
-/// Demo courier used until the login screen (C-02) exists.
+/// The courier in the offline mock (K-02); on the server each name is its
+/// own courier (K-12).
 const demoCourierId = 'courier-demo';
 const demoCourierName = 'Alex Morgan';
 
@@ -28,7 +30,27 @@ Future<void> main() async {
   // K-43: load saved settings before the first frame.
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await CourierPrefs.load();
-  // TODO(K-12): swap in the real API service once the server is ready.
+  final customerPreferences = await SharedPreferences.getInstance();
+  // K-12: couriers use the server by default, like customers (C-13).
+  // flutter run --dart-define=USE_MOCK_COURIER_API=true for the offline demo.
+  const useMockCourier = bool.fromEnvironment('USE_MOCK_COURIER_API');
+  final CourierService courierService = useMockCourier
+      ? _offlineCourierDemo()
+      : ApiCourierService(preferences: customerPreferences);
+  const useMock = bool.fromEnvironment('USE_MOCK_CUSTOMER_API');
+  runApp(
+    CampusDeliveryApp(
+      courierService: courierService,
+      prefs: prefs,
+      customerOrderService: useMock
+          ? MockCustomerOrderService(preferences: customerPreferences)
+          : ApiCustomerOrderService(preferences: customerPreferences),
+    ),
+  );
+}
+
+/// The mock courier service with its demo extras.
+MockCourierService _offlineCourierDemo() {
   // New demo requests trickle in so auto-refresh (K-11) has something to show.
   final service = MockCourierService(
     newRequestEvery: const Duration(minutes: 1),
@@ -43,17 +65,7 @@ Future<void> main() async {
   service.seedHistory(demoCourierId);
   // Demo: open the app with ?demo=offline to see the error state (K-14).
   if (Uri.base.queryParameters['demo'] == 'offline') service.failNextCalls();
-  final customerPreferences = await SharedPreferences.getInstance();
-  const useMock = bool.fromEnvironment('USE_MOCK_CUSTOMER_API');
-  runApp(
-    CampusDeliveryApp(
-      courierService: service,
-      prefs: prefs,
-      customerOrderService: useMock
-          ? MockCustomerOrderService(preferences: customerPreferences)
-          : ApiCustomerOrderService(preferences: customerPreferences),
-    ),
-  );
+  return service;
 }
 
 class CampusDeliveryApp extends StatefulWidget {
@@ -92,6 +104,8 @@ class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
       widget.customerOrderService ?? MockCustomerOrderService();
 
   void _switchRole() => setState(() => _choosingRole = true);
+
+  String get _courierName => _name.trim().isEmpty ? demoCourierName : _name;
 
   late bool _showIntro = widget.prefs != null && !widget.prefs!.onboardingDone;
 
@@ -155,8 +169,10 @@ class _CampusDeliveryAppState extends State<CampusDeliveryApp> {
               )
             : CourierHomeScreen(
                 service: widget.courierService,
-                courierId: demoCourierId,
-                courierName: _name.isEmpty ? demoCourierName : _name,
+                courierId: widget.courierService.isServerBacked
+                    ? '${ApiCourierService.idPrefix}$_courierName'
+                    : demoCourierId,
+                courierName: _courierName,
                 onSwitchRole: widget.showWelcome ? _switchRole : null,
                 prefs: widget.prefs,
               ),
