@@ -211,8 +211,13 @@ class _MyDeliveriesTabState extends State<MyDeliveriesTab> {
             pickupReady: _pickupReady,
             onPickupReadyChanged: (ready) =>
                 setState(() => _pickupReady = ready),
-            onReportProblem: () => _reportProblem(order),
-            onRelease: order.status == OrderStatus.accepted
+            // K-12: the live server can't take these yet, so they're hidden.
+            onReportProblem: widget.service.isServerBacked
+                ? null
+                : () => _reportProblem(order),
+            onRelease:
+                order.status == OrderStatus.accepted &&
+                    !widget.service.isServerBacked
                 ? () => _release(order)
                 : null,
           ),
@@ -228,7 +233,7 @@ class _ActiveDelivery extends StatelessWidget {
     required this.onAdvance,
     required this.pickupReady,
     required this.onPickupReadyChanged,
-    required this.onReportProblem,
+    this.onReportProblem,
     this.onRelease,
   });
 
@@ -244,7 +249,7 @@ class _ActiveDelivery extends StatelessWidget {
   final VoidCallback? onRelease;
 
   /// K-51: opens the problem report sheet.
-  final VoidCallback onReportProblem;
+  final VoidCallback? onReportProblem;
 
   @override
   Widget build(BuildContext context) {
@@ -380,15 +385,16 @@ class _ActiveDelivery extends StatelessWidget {
               foregroundColor: AppColors.textSecondary,
             ),
           ),
-        TextButton.icon(
-          onPressed: updating ? null : onReportProblem,
-          icon: const Icon(Icons.report_problem_outlined, size: 18),
-          label: const Text('Report a problem'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.textSecondary,
-            minimumSize: const Size(48, 48),
+        if (onReportProblem != null)
+          TextButton.icon(
+            onPressed: updating ? null : onReportProblem,
+            icon: const Icon(Icons.report_problem_outlined, size: 18),
+            label: const Text('Report a problem'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+              minimumSize: const Size(48, 48),
+            ),
           ),
-        ),
         // K-24: history below the main action, so the button stays on screen.
         const SizedBox(height: 20),
         GlassPanel(
