@@ -85,7 +85,9 @@ void main() {
     addTearDown(tester.view.reset);
     final service = MockCourierService(latency: Duration.zero);
     final order = (await service.fetchAvailableRequests()).first;
-    await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+    await tester.pumpWidget(
+      CampusDeliveryApp(showWelcome: false, courierService: service),
+    );
     await tester.pump();
 
     await tester.tap(find.text('Earnings'));

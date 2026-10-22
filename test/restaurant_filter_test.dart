@@ -63,7 +63,7 @@ void main() {
     await _tapChip(tester, 'Starbucks · 1');
 
     expect(find.text('1 of 5 open requests'), findsOneWidget);
-    expect(find.text('Student Union · Starbucks'), findsOneWidget);
+    expect(find.text('Bookstore · Starbucks'), findsOneWidget);
   });
 
   testWidgets('tapping it again, or All, shows everything', (tester) async {

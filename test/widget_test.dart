@@ -9,6 +9,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       CampusDeliveryApp(
+        showWelcome: false,
         courierService: MockCourierService(latency: Duration.zero),
       ),
     );

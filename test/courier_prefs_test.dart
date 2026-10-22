@@ -22,6 +22,7 @@ Future<CourierPrefs> _pumpApp(
   final prefs = await CourierPrefs.load();
   await tester.pumpWidget(
     CampusDeliveryApp(
+      showWelcome: false,
       courierService: MockCourierService(latency: Duration.zero),
       prefs: prefs,
     ),

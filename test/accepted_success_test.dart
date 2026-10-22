@@ -22,7 +22,9 @@ Future<Order> _acceptFirst(
   MockCourierService service,
 ) async {
   final order = (await service.fetchAvailableRequests()).first;
-  await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+  await tester.pumpWidget(
+    CampusDeliveryApp(showWelcome: false, courierService: service),
+  );
   await tester.pump();
   // The header, chips and badge push the first card below the small test
   // screen's fold.

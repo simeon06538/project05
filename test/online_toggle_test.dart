@@ -9,7 +9,9 @@ Future<MockCourierService> _pumpApp(WidgetTester tester) async {
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final service = MockCourierService(latency: Duration.zero);
-  await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+  await tester.pumpWidget(
+    CampusDeliveryApp(showWelcome: false, courierService: service),
+  );
   await tester.pump();
   return service;
 }

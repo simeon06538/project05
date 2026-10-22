@@ -1,160 +1,290 @@
-# Campus Delivery API - courier section (DRAFT)
+# Campus Delivery API
 
-> **Status:** draft written from the courier app's `CourierService`
-> (`lib/services/courier_service.dart`) so Person 3 has a contract to build
-> against (B-02, B-05 to B-11). Person 3 owns this file - change anything
-> that doesn't work for the server, and tell Person 2 so the app matches.
-> The customer section (Person 1) still needs to be added.
+Owner: Person 3 (server). Change this file in the same commit as any API change.
 
-## Conventions
+- Base URL (local): `http://localhost:3000`
+  - Android emulator: `http://10.0.2.2:3000`
+  - Physical phone on the same Wi-Fi: `http://<your-computer-LAN-IP>:3000`
+- All request and response bodies are JSON (`Content-Type: application/json`).
+- IDs: users and orders have integer IDs. Locations have short string IDs
+  (for example `"union"`, `"middleton-library"`).
+- Money is in **US dollars** as numbers with at most 2 decimals (for example `3.5` means $3.50).
+  The server stores cents internally, so rounding is exact.
+- Timestamps are ISO-8601 UTC strings (`"2026-10-16T18:04:11.123Z"`).
 
-- Base URL: `http://localhost:3000` in development (`server/src/config.js`).
-- JSON everywhere, `Content-Type: application/json`.
-- **Money is in whole cents** (`350` = $3.50). Never floats.
-- **Times** are ISO 8601 strings in UTC, e.g. `"2026-10-14T20:05:00Z"`.
-- **Status** values are exactly: `requested`, `accepted`, `pickedUp`,
-  `delivered`, `cancelled`.
-- The server works out `deliveryFeeCents` from the distance (B-06), so the
-  app never sends a fee: $2.00 + $0.50 per started 0.25 mi from the Union,
-  capped at $6.00.
-- The Flutter web app calls the API from the browser, so **CORS must be
-  enabled** (B-13).
+## Data models
 
-## Order
+### User
 
 ```json
 {
-  "id": "order-1",
-  "customerId": "customer-1",
-  "courierId": null,
-  "pickupLocation": "Student Union · Grill",
-  "dropoffLocation": "Library · Main entrance",
-  "distanceMiles": 0.4,
-  "deliveryFeeCents": 300,
-  "tipCents": 100,
-  "status": "requested",
-  "pawPointsOrderNumber": "PP-4810",
-  "createdAt": "2026-10-14T20:05:00Z",
-  "updatedAt": "2026-10-14T20:05:00Z",
-  "acceptedAt": null,
-  "pickedUpAt": null,
-  "deliveredAt": null,
-  "dropoffNote": null,
-  "customerRating": null,
-  "customerNote": null,
-  "problem": null,
-  "problemDetails": null
+  "id": 1,
+  "name": "Alex Customer",
+  "email": "alex@example.edu",
+  "role": "customer",
+  "earnings": 0
 }
 ```
 
-| Field | Notes |
-|---|---|
-| `courierId` | `null` until a courier accepts. |
-| `acceptedAt`, `pickedUpAt`, `deliveredAt` | Set by the server when each step happens (timeline, K-24). |
-| `dropoffNote` | Optional text the courier sends with "delivered" (K-34), max 80 chars. |
-| `customerRating`, `customerNote` | 1-5 stars and optional thank-you, left by the customer after delivery (K-47). |
+| Field      | Type            | Notes                                         |
+|------------|-----------------|-----------------------------------------------|
+| `id`       | int             | Server-assigned                               |
+| `name`     | string          | 1-100 chars                                   |
+| `email`    | string \| null  | Optional, unique if given                     |
+| `role`     | string          | `"customer"` or `"courier"`                   |
+| `earnings` | number (dollars)| Demo balance. Always `0` for customers        |
 
-The app works out `totalPayCents` (fee + tip) and pay per mile itself, so
-the server doesn't need to send them.
+### Location
+
+```json
+{ "id": "middleton-library", "name": "Middleton Library", "distanceFromUnionMiles": 0.2 }
+```
+
+### Order
+
+```json
+{
+  "id": 12,
+  "customerId": 1,
+  "courierId": null,
+  "pickupLocation": "union",
+  "pickupLocationName": "LSU Student Union",
+  "dropoffLocation": "west-campus-apts",
+  "dropoffLocationName": "West Campus Apartments",
+  "distanceMiles": 1.0,
+  "deliveryFee": 4.0,
+  "tip": 2.0,
+  "totalPay": 6.0,
+  "status": "requested",
+  "pawPointsOrderNumber": "PP-10442",
+  "createdAt": "2026-10-16T18:04:11.123Z",
+  "updatedAt": "2026-10-16T18:04:11.123Z"
+}
+```
+
+- `pickupLocation` and `dropoffLocation` are location IDs. The `...Name` fields are
+  included so screens don't have to look them up.
+- `courierId` is `null` until a courier accepts.
+- `distanceMiles` is the approximate pickup-to-drop-off distance. Union pickups retain the catalog's Union estimate; other origins use schematic offsets. See [location sources and limitations](locations.md).
+- `deliveryFee`, `distanceMiles` and `totalPay` are always **calculated by the server**.
+  If the client sends them, the server ignores them.
+
+### Status values
+
+```
+requested -> accepted -> picked_up -> delivered
+requested -> cancelled
+```
+
+No other transitions are allowed. `delivered` and `cancelled` are final.
+
+### Customer pickup metadata
+
+Orders now include nullable `orderName` and `pickupRestaurant` strings. New customer requests send both (1–100 characters, trimmed); they remain optional on the server for compatibility with existing courier/demo clients. Old orders have null values. These fields identify the food order and restaurant within a pickup building.
+
+## Pricing
+
+```
+deliveryFee = min($2.00 + $0.50 * ceil(distanceMiles / 0.25), $6.00)
+totalPay    = deliveryFee + tip
+```
+
+| Estimated delivery distance | Fee   |
+|---------------------|-------|
+| 0 mi                | $2.00 |
+| 0.1 mi              | $2.50 |
+| 0.25 mi             | $2.50 |
+| 0.3 mi              | $3.00 |
+| 1.0 mi              | $4.00 |
+| 2.0 mi or more      | $6.00 (cap) |
+
+Tip: from `0` to `50` dollars, at most 2 decimal places. The app offers $0/$1/$2/$3/custom.
 
 ## Errors
 
-Every error response looks like:
-
-```json
-{ "error": "already_taken", "message": "Another courier accepted this order." }
-```
-
-| HTTP | `error` | App exception | When |
-|---|---|---|---|
-| 404 | `not_found` | `OrderNotFoundException` | No such order (or it was cancelled). |
-| 409 | `already_taken` | `OrderAlreadyTakenException` | Another courier accepted it first. |
-| 409 | `active_delivery` | `ActiveDeliveryException` | This courier already has an accepted or picked-up order. |
-| 409 | `invalid_transition` | `InvalidStatusChangeException` | Status change out of order (e.g. accepted -> delivered). |
-| 403 | `not_your_delivery` | `NotYourDeliveryException` | Releasing an order another courier holds. |
-| 5xx / no response | - | `ServiceUnavailableException` | The app shows "Couldn't reach the server" with Try again. |
-
-## Endpoints
-
-### List open requests
-`GET /orders?status=requested` -> `CourierService.fetchAvailableRequests`
-
-`200` with an array of Orders, **oldest first**.
-
-### The courier's active delivery
-`GET /couriers/{courierId}/active-delivery` -> `fetchActiveDelivery`
-
-`200` with the Order that is `accepted` or `pickedUp`, or `204 No Content`
-when there is none.
-
-### Accept a request
-`PATCH /orders/{orderId}/accept` -> `acceptRequest`
-
-```json
-{ "courierId": "courier-demo" }
-```
-
-`200` with the updated Order (`status: "accepted"`, `courierId` and
-`acceptedAt` set). Must be **atomic** (B-08): if two couriers accept at the
-same time, exactly one gets `200` and the other gets `409 already_taken`.
-`409 active_delivery` if this courier already has a job.
-
-### Update status
-`PATCH /orders/{orderId}/status` -> `updateStatus`
-
-```json
-{ "status": "pickedUp" }
-```
-```json
-{ "status": "delivered", "dropoffNote": "Left with the front desk" }
-```
-
-Only `accepted -> pickedUp -> delivered` is allowed (B-09); anything else
-is `409 invalid_transition`. On `delivered` the server adds the order's
-fee + tip to the courier's balance **in the same transaction** (B-10).
-
-### Release before pickup
-`PATCH /orders/{orderId}/release` -> `releaseDelivery`
-
-```json
-{ "courierId": "courier-demo" }
-```
-
-`200` with the Order back to `status: "requested"`, `courierId` and
-`acceptedAt` cleared. Only allowed while `accepted` (`409
-invalid_transition` after pickup); `403 not_your_delivery` if another
-courier holds it.
-
-### Report a problem
-`POST /orders/{orderId}/problem` -> `reportProblem` (K-51)
-
-```json
-{ "courierId": "courier-demo", "problem": "restaurantClosed", "details": "Lights off at 9pm" }
-```
-
-`problem` is one of `restaurantClosed`, `orderNotReady`,
-`cantFindCustomer`, `other`. `restaurantClosed` (only while `accepted`)
-cancels the order - `status: "cancelled"`, no pay; the others flag it for
-support and the delivery carries on. `200` with the updated Order (which
-now includes `problem` and `problemDetails`). `409 invalid_transition` if
-the problem doesn't fit the status; `403 not_your_delivery` for another
-courier's order.
-
-### Earnings
-`GET /couriers/{courierId}/earnings` -> `fetchEarnings`
+Every error uses the same shape:
 
 ```json
 {
-  "balanceCents": 4050,
-  "completedDeliveries": [ { "...": "Order objects, newest first" } ]
+  "error": {
+    "code": "validation_error",
+    "message": "tip must be a number between 0 and 50",
+    "details": [{ "field": "tip", "message": "must be a number between 0 and 50" }]
+  }
 }
 ```
 
-## Hooking it up (K-12)
+`details` appears only for `validation_error`.
 
-Once these endpoints exist, the app needs one new class,
-`ApiCourierService implements CourierService`, that calls them and turns
-the error codes above into the matching exceptions. Then `main.dart`
-swaps `MockCourierService()` for it - no screen changes needed. The mock
-already follows every rule on this page, so the screens are tested
-against the same behaviour.
+| HTTP | `code`               | When                                                        |
+|------|----------------------|-------------------------------------------------------------|
+| 400  | `validation_error`   | Missing or invalid fields, malformed JSON, bad query params |
+| 403  | `forbidden`          | Wrong user for this action (for example, not the order's courier) |
+| 404  | `not_found`          | Unknown user, order, courier or route                       |
+| 409  | `email_taken`        | `POST /users` with an email that already exists             |
+| 409  | `already_accepted`   | Another courier already accepted the order                  |
+| 409  | `courier_busy`       | Courier already has an active (accepted or picked_up) delivery |
+| 409  | `invalid_transition` | Status change not allowed from the current status           |
+| 500  | `internal_error`     | Unexpected server error                                     |
+
+## Endpoints
+
+### `GET /health`
+
+`200 {"status": "ok"}`
+
+### `GET /locations`
+
+Lists the shared campus catalog, sorted by distance from the Union. Each location also includes `demoXMiles`, `demoYMiles`, and `category` (`campus`, `residence_hall`, or `apartment`). These are approximate demo offsets, not GPS coordinates. Source details: [locations.md](locations.md).
+
+`200`
+```json
+[
+  { "id": "union", "name": "LSU Student Union", "distanceFromUnionMiles": 0 },
+  { "id": "middleton-library", "name": "Middleton Library", "distanceFromUnionMiles": 0.2 }
+]
+```
+
+### `POST /users`
+
+Creates a user (used by the role-selection / login screen).
+
+Request:
+```json
+{ "name": "Alex Customer", "role": "customer", "email": "alex@example.edu" }
+```
+`email` is optional.
+
+`201` returns the User. Errors: `400 validation_error`, `409 email_taken`.
+
+### `GET /users/:id`
+
+`200` returns the User. Errors: `400` (id is not a positive integer), `404 not_found`.
+
+### `POST /orders`
+
+Customer creates a delivery request.
+
+Request:
+```json
+{
+  "customerId": 1,
+  "pickupLocation": "union",
+  "dropoffLocation": "west-campus-apts",
+  "tip": 2,
+  "orderName": "Alex Customer",
+  "pickupRestaurant": "Chick-fil-A",
+  "pawPointsOrderNumber": "PP-10442"
+}
+```
+
+Rules:
+- `customerId` must be an existing user with role `customer`.
+- `pickupLocation` and `dropoffLocation` must be known location IDs and must be different.
+- `tip` is optional (default `0`), from 0 to 50, at most 2 decimals.
+- `pawPointsOrderNumber` is required, 1-40 chars, for mobile orders. Set `isMobileOrder: false` for Panera or other restaurants outside LSU Dining; the number may then be omitted or empty (maximum 40 chars). `isMobileOrder` defaults to true for existing clients.
+- `orderName` and `pickupRestaurant` are optional for older clients; when provided they must be nonblank strings of 1–100 chars. The customer app requires both.
+
+`201` returns the Order with `status: "requested"`.
+Errors: `400 validation_error`, `404 not_found` (no user with that id, or the user is not a customer).
+
+### `GET /orders`
+
+Lists orders, newest first. Filters can be combined:
+
+| Query        | Example                         | Meaning                          |
+|--------------|---------------------------------|----------------------------------|
+| `customerId` | `/orders?customerId=1`          | A customer's orders              |
+| `courierId`  | `/orders?courierId=3`           | Orders a courier has accepted    |
+| `status`     | `/orders?status=requested`      | Courier "Available" list         |
+|              | `/orders?courierId=3&status=accepted,picked_up` | Comma-separated list of statuses |
+
+`200` returns an array of Orders (may be empty). Errors: `400 validation_error`.
+
+### `GET /orders/:id`
+
+`200` returns the Order. Errors: `400`, `404 not_found`.
+
+### `PATCH /orders/:id/accept`
+
+Courier accepts a requested order. This is atomic: if two couriers accept at the same
+time, exactly one gets `200` and the other gets `409 already_accepted`.
+
+Request:
+```json
+{ "courierId": 3 }
+```
+
+`200` returns the Order with `status: "accepted"` and `courierId: 3`.
+
+Errors:
+- `400 validation_error`
+- `404 not_found` (order or courier doesn't exist, or the user is not a courier)
+- `409 already_accepted` (order is no longer `requested`)
+- `409 courier_busy` (courier already has an active delivery)
+
+### `PATCH /orders/:id/status`
+
+Moves an order to the next status. Use `/accept` to accept, not this endpoint.
+
+Request (courier):
+```json
+{ "status": "picked_up", "courierId": 3 }
+```
+```json
+{ "status": "delivered", "courierId": 3 }
+```
+
+Request (customer cancelling):
+```json
+{ "status": "cancelled", "customerId": 1 }
+```
+
+Rules:
+- `picked_up` and `delivered` need the `courierId` of the courier who accepted the order.
+- `cancelled` needs the `customerId` of the order's customer, and only works while
+  the order is still `requested`.
+- When an order becomes `delivered`, its `totalPay` is added to the courier's `earnings`
+  in the same database transaction.
+
+`200` returns the updated Order.
+Errors: `400 validation_error`, `403 forbidden`, `404 not_found`, `409 invalid_transition`.
+
+### `GET /couriers/:id/earnings`
+
+Courier's demo balance and completed deliveries, newest first.
+
+`200`
+```json
+{
+  "courierId": 3,
+  "earnings": 10.5,
+  "deliveryCount": 2,
+  "deliveries": [
+    {
+      "orderId": 12,
+      "pickupLocation": "union",
+      "pickupLocationName": "LSU Student Union",
+      "dropoffLocation": "west-campus-apts",
+      "dropoffLocationName": "West Campus Apartments",
+      "deliveryFee": 4.0,
+      "tip": 2.0,
+      "totalPay": 6.0,
+      "deliveredAt": "2026-10-16T18:30:00.000Z"
+    }
+  ]
+}
+```
+
+Errors: `400`, `404 not_found` (no courier with that id).
+
+### `DELETE /orders/:id`
+
+Permanently deletes a request while it is still `requested`. Body: `{ "customerId": 1 }`.
+Returns `204` with no body. The request disappears from every list, including history; this is distinct from cancellation. Ownership and status are checked in the same SQLite write transaction as deletion.
+
+Errors: `400 validation_error` (invalid IDs/body), `403 forbidden` (another customer), `404 not_found`, `409 invalid_transition` (accepted, picked up, delivered, or cancelled). Fulfilled orders cannot be deleted through this endpoint and remain in Past deliveries.
+
+## Class-demo identity
+
+The API currently trusts supplied user IDs and has no password authentication. Flutter creates a customer with `POST /users`, remembers the returned unique ID per normalized welcome-screen name and API origin on the device, and verifies the saved ID with `GET /users/:id` when reopening the profile. Matching names on different devices are separate demo profiles. A server reset requires restarting the app; stale/mismatched saved IDs are checked before reuse. This is not production authentication.

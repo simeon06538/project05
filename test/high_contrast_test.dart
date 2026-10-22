@@ -16,6 +16,7 @@ Future<ValueNotifier<bool>> _pumpApp(
   final contrast = ValueNotifier(highContrast);
   await tester.pumpWidget(
     CampusDeliveryApp(
+      showWelcome: false,
       courierService: MockCourierService(latency: Duration.zero),
       highContrast: contrast,
     ),

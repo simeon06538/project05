@@ -137,7 +137,7 @@ void main() {
           id: 'h$day',
           customerId: 'c',
           courierId: 'courier-a',
-          pickupLocation: 'Student Union · Starbucks',
+          pickupLocation: 'Bookstore · Starbucks',
           dropoffLocation: 'Rec Center',
           distanceMiles: 0.3 + day * 0.2,
           deliveryFeeCents: 300 + day * 50,

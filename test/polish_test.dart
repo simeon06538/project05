@@ -9,6 +9,7 @@ void main() {
   testWidgets('tab bar shows an icon for each tab', (tester) async {
     await tester.pumpWidget(
       CampusDeliveryApp(
+        showWelcome: false,
         courierService: MockCourierService(latency: Duration.zero),
       ),
     );
@@ -22,6 +23,7 @@ void main() {
   testWidgets('tabs are announced with their selected state', (tester) async {
     await tester.pumpWidget(
       CampusDeliveryApp(
+        showWelcome: false,
         courierService: MockCourierService(latency: Duration.zero),
       ),
     );

@@ -47,7 +47,9 @@ void main() {
     await service.acceptRequest(order.id, demoCourierId);
     await service.updateStatus(order.id, OrderStatus.pickedUp);
     await service.updateStatus(order.id, OrderStatus.delivered);
-    await tester.pumpWidget(CampusDeliveryApp(courierService: service));
+    await tester.pumpWidget(
+      CampusDeliveryApp(showWelcome: false, courierService: service),
+    );
     await tester.pump();
 
     await tester.tap(find.byTooltip('Settings'));
