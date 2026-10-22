@@ -65,6 +65,34 @@ void main() {
     expect(find.bySemanticsLabel('Delivered, Pending'), findsOneWidget);
   });
 
+  testWidgets('past steps without a time show as done (K-12)', (tester) async {
+    // A server order loaded after pickup: no accept or pickup times.
+    final created = DateTime(2026, 10, 14, 15, 0);
+    final order = Order(
+      id: '7',
+      customerId: '2',
+      pickupLocation: 'The 5 · Popeyes',
+      dropoffLocation: 'Spruce Hall',
+      distanceMiles: 0.6,
+      deliveryFeeCents: 350,
+      tipCents: 100,
+      status: OrderStatus.pickedUp,
+      pawPointsOrderNumber: 'PP-7',
+      createdAt: created,
+      updatedAt: created,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: DeliveryTimeline(order: order)),
+      ),
+    );
+
+    expect(find.bySemanticsLabel('Requested, 3:00 PM'), findsOneWidget);
+    expect(find.bySemanticsLabel('Accepted, Done'), findsOneWidget);
+    expect(find.bySemanticsLabel('Picked up, Done'), findsOneWidget);
+    expect(find.bySemanticsLabel('Delivered, Next'), findsOneWidget);
+  });
+
   testWidgets('active delivery shows the timeline after pickup', (
     tester,
   ) async {

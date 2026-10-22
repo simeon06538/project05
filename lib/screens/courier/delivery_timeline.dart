@@ -11,7 +11,9 @@ String formatClock(DateTime time) {
 }
 
 /// K-24: when the order was requested, accepted, picked up and delivered.
-/// Steps that haven't happened yet show as "Next" / "Pending".
+/// Steps that haven't happened yet show as "Next" / "Pending", and past
+/// steps with no recorded time (the server doesn't keep them, K-12) as
+/// "Done".
 class DeliveryTimeline extends StatelessWidget {
   const DeliveryTimeline({super.key, required this.order});
 
@@ -26,7 +28,13 @@ class DeliveryTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstPending = _steps.indexWhere((s) => order.timeOf(s.$1) == null);
+    // Steps up to the order's status are done even without a time.
+    final reached = _steps.indexWhere((s) => s.$1 == order.status);
+    final done = [
+      for (var i = 0; i < _steps.length; i++)
+        i <= reached || order.timeOf(_steps[i].$1) != null,
+    ];
+    final firstPending = done.indexOf(false);
     return Column(
       children: [
         for (var i = 0; i < _steps.length; i++)
@@ -34,6 +42,7 @@ class DeliveryTimeline extends StatelessWidget {
             label: _steps[i].$2,
             icon: _steps[i].$3,
             time: order.timeOf(_steps[i].$1),
+            done: done[i],
             isNext: i == firstPending,
             isLast: i == _steps.length - 1,
           ),
@@ -47,6 +56,7 @@ class _TimelineRow extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.time,
+    required this.done,
     required this.isNext,
     required this.isLast,
   });
@@ -54,13 +64,18 @@ class _TimelineRow extends StatelessWidget {
   final String label;
   final IconData icon;
   final DateTime? time;
+  final bool done;
   final bool isNext;
   final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    final done = time != null;
-    final status = done ? formatClock(time!) : (isNext ? 'Next' : 'Pending');
+    final time = this.time;
+    final status = time != null
+        ? formatClock(time)
+        : done
+        ? 'Done'
+        : (isNext ? 'Next' : 'Pending');
     return Semantics(
       label: '$label, $status',
       excludeSemantics: true,
