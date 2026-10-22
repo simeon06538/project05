@@ -2,10 +2,15 @@ import '../models/order.dart';
 
 /// Everything the courier screens need from the backend.
 ///
-/// [MockCourierService] implements this with fake data for now; K-12 adds
-/// a real implementation that calls Person 3's API, and the screens don't
-/// have to change.
+/// [MockCourierService] implements this with fake data, and
+/// [ApiCourierService] (K-12) calls Person 3's server; the screens work
+/// with either.
 abstract class CourierService {
+  /// K-12: true for the live server. It has no endpoints for giving a
+  /// delivery back (K-28) or reporting a problem (K-51), so those buttons
+  /// are hidden.
+  bool get isServerBacked;
+
   /// Open requests no courier has accepted yet (status == requested).
   Future<List<Order>> fetchAvailableRequests();
 
