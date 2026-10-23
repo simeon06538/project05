@@ -30,6 +30,22 @@ jobs:
         run: flutter test --exclude-tags golden
 
         
+      - name: Set up Node.js for customer API test
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies for customer API test
+        run: npm ci
+        working-directory: server
+
+      - name: Run customer API integration test
+        run: flutter test --dart-define=RUN_LIVE_CUSTOMER_API=true test/live_customer_api_test.dart
+
+
+        
   server-tests:
     name: Run Server Tests
     runs-on: ubuntu-latest
