@@ -1,4 +1,3 @@
-// ignore_for_file: invalid_use_of_visible_for_testing_member
 import 'package:campus_delivery/main.dart';
 import 'package:campus_delivery/models/order.dart';
 import 'package:campus_delivery/services/mock_courier_service.dart';
