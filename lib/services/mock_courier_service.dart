@@ -33,6 +33,9 @@ class MockCourierService implements CourierService {
   final Map<String, int> _balances = {};
 
   @override
+  bool get isServerBacked => false;
+
+  @override
   Future<List<Order>> fetchAvailableRequests() async {
     await _delay();
     final every = newRequestEvery;

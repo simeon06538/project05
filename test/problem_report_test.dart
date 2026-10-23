@@ -8,6 +8,14 @@ import 'package:campus_delivery/services/mock_courier_service.dart';
 
 const _courier = 'courier-a';
 
+/// Stands in for the live server, which can't release or flag deliveries.
+class _ServerBackedService extends MockCourierService {
+  _ServerBackedService() : super(latency: Duration.zero);
+
+  @override
+  bool get isServerBacked => true;
+}
+
 Future<(MockCourierService, Order)> _accepted() async {
   final service = MockCourierService(latency: Duration.zero);
   final order = (await service.fetchAvailableRequests()).first;
@@ -124,5 +132,18 @@ void main() {
       find.text('Problem reported. Support has been notified.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the live server hides release and problem report (K-12)', (
+    tester,
+  ) async {
+    final service = _ServerBackedService();
+    final order = (await service.fetchAvailableRequests()).first;
+    await service.acceptRequest(order.id, _courier);
+    await _pumpTab(tester, service);
+
+    expect(find.text('Mark as picked up'), findsOneWidget);
+    expect(find.text('Report a problem'), findsNothing);
+    expect(find.text("Can't make it? Release delivery"), findsNothing);
   });
 }
