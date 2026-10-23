@@ -1,0 +1,102 @@
+
+name: Flutter CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  analyze:
+    name: Analyze Flutter Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+        
+      - name: Run Flutter tests
+        run: flutter test --exclude-tags golden
+
+        
+      - name: Set up Node.js for customer API test
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies for customer API test
+        run: npm ci
+        working-directory: server
+
+      - name: Run customer API integration test
+        run: flutter test --dart-define=RUN_LIVE_CUSTOMER_API=true test/live_customer_api_test.dart
+
+
+        
+  server-tests:
+    name: Run Server Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+
+      - name: Run server tests
+        run: npm test
+
+        
+  build-web:
+    name: Build Flutter Web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web application
+        run: flutter build web --release
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: campus-delivery-web
+          path: build/web/
+          if-no-files-found: error
+
+

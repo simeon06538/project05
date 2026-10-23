@@ -1,5 +1,9 @@
 # project05
 
+
+[![Flutter CI](https://github.com/simeon06538/project05/actions/workflows/flutter-ci.yml/badge.svg?branch=person4)](https://github.com/simeon06538/project05/actions/workflows/flutter-ci.yml?query=branch%3Aperson4)
+
+
 Campus delivery app: customers request delivery of food they already paid for with
 Paw Points, and couriers accept and deliver it. Payments are simulated for the demo.
 
@@ -125,6 +129,71 @@ Customer API smoke test against an isolated in-memory Node server (requires `npm
 ```sh
 flutter test --dart-define=RUN_LIVE_CUSTOMER_API=true test/live_customer_api_test.dart
 ```
+
+## Continuous Integration and Automated Testing (Person 4)
+
+This project uses GitHub Actions to automatically check the Flutter application and Node.js backend.
+
+### Automated Checks
+
+The workflow is located at `.github/workflows/flutter-ci.yml`.
+
+It performs the following checks:
+
+1. Flutter static analysis using `flutter analyze`.
+2. Flutter automated tests using `flutter test --exclude-tags golden`.
+3. Node.js server tests using `npm test` in the `server/` directory.
+4. Flutter web release build using `flutter build web --release`.
+
+The workflow runs automatically when triggered by the events configured in the GitHub Actions workflow.
+
+### Golden Screenshot Tests
+
+Golden screenshot tests are excluded from the standard CI test run because some reference screenshots currently differ from the rendered UI.
+
+To run golden tests separately:
+
+```bash
+flutter test --tags golden
+```
+
+To regenerate golden screenshots after an intentional UI change:
+
+```bash
+flutter test --update-goldens --tags golden
+```
+
+Updated golden images should be reviewed before committing.
+
+### Downloading the Web Build
+
+1. Open the repository on GitHub.
+2. Select the Actions tab.
+3. Open a successful Flutter CI workflow run.
+4. Scroll to the Artifacts section.
+5. Download `campus-delivery-web`.
+
+The artifact contains the compiled Flutter web application. It is not a standalone desktop or mobile installer.
+
+### Running Tests Locally
+
+From the project root:
+
+```bash
+flutter pub get
+flutter analyze
+flutter test --exclude-tags golden
+```
+
+To run the backend tests:
+
+```bash
+cd server
+npm ci
+npm test
+```
+
+Node.js 22 or newer is required for the backend.
 
 ## Courier app (Person 2)
 
